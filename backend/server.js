@@ -1,0 +1,214 @@
+const express = require("express");
+const cors = require("cors");
+const crypto = require("crypto");
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const SEED_PATH = path.join(__dirname, "seed-decisions.json");
+const STORE_PATH = path.join(__dirname, "decisions-store.json");
+const KEYS_DIR = path.join(__dirname, "..", "keys");
+const CONTRACT_PACKAGE = "hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb";
+const NODE_URL = "https://node.testnet.casper.network/rpc";
+const CHAIN_NAME = "casper-test";
+
+// Load decisions from store (or seed if store doesn't exist)
+let decisions = [];
+if (fs.existsSync(STORE_PATH)) {
+  decisions = JSON.parse(fs.readFileSync(STORE_PATH, "utf8"));
+} else if (fs.existsSync(SEED_PATH)) {
+  decisions = JSON.parse(fs.readFileSync(SEED_PATH, "utf8"));
+  fs.writeFileSync(STORE_PATH, JSON.stringify(decisions, null, 2));
+}
+
+function saveStore() {
+  fs.writeFileSync(STORE_PATH, JSON.stringify(decisions, null, 2));
+}
+
+function sha256(data) {
+  return crypto.createHash("sha256").update(data).digest("hex");
+}
+
+function canonicalize(obj) {
+  const sorted = {};
+  for (const key of Object.keys(obj).sort()) {
+    sorted[key] = obj[key];
+  }
+  return JSON.stringify(sorted);
+}
+
+// GET /api/decisions — list all decisions
+app.get("/api/decisions", (req, res) => {
+  const { agent } = req.query;
+  let result = [...decisions].reverse(); // newest first
+  if (agent && agent !== "all") {
+    result = result.filter((d) => d.agentId === agent);
+  }
+  res.json({ decisions: result, total: result.length });
+});
+
+// GET /api/decisions/:id — single decision
+app.get("/api/decisions/:id", (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const decision = decisions.find((d) => d.decisionId === id);
+  if (!decision) {
+    return res.status(404).json({ error: "Decision not found" });
+  }
+  res.json(decision);
+});
+
+// GET /api/stats — summary stats
+app.get("/api/stats", (req, res) => {
+  const agents = new Set(decisions.map((d) => d.agentId));
+  const latestBlock = Math.max(...decisions.map((d) => d.blockHeight || 0));
+  res.json({
+    totalDecisions: decisions.length,
+    totalAgents: agents.size,
+    latestBlock,
+    agents: [...agents].map((agentId) => {
+      const agentDecs = decisions.filter((d) => d.agentId === agentId);
+      const latest = agentDecs[agentDecs.length - 1];
+      return {
+        agentId,
+        totalDecisions: agentDecs.length,
+        lastAction: latest?.actionClass || "none",
+        lastTimestamp: latest?.timestamp || "",
+      };
+    }),
+  });
+});
+
+// POST /api/record — record a new decision on-chain
+app.post("/api/record", async (req, res) => {
+  const { agentId, actionClass, inputData, outputData, jobPaymentRefHash } = req.body;
+
+  if (!agentId || !actionClass || !inputData || !outputData) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const inputHash = sha256(canonicalize(inputData));
+    const outputHash = sha256(canonicalize(outputData));
+    const jobRef = jobPaymentRefHash || "";
+
+    // Submit to Casper via casper-client
+    const cmd = [
+      "casper-client put-transaction package",
+      `--node-address ${NODE_URL}`,
+      `--secret-key ${path.join(KEYS_DIR, "secret_key.pem")}`,
+      `--chain-name ${CHAIN_NAME}`,
+      `--contract-package-hash "${CONTRACT_PACKAGE}"`,
+      '--session-entry-point "record_decision"',
+      `--session-arg 'agent_id:string='"'"'${agentId}'"'"''`,
+      `--session-arg 'action_class:string='"'"'${actionClass}'"'"''`,
+      `--session-arg 'input_hash:string='"'"'${inputHash}'"'"''`,
+      `--session-arg 'output_hash:string='"'"'${outputHash}'"'"''`,
+      `--session-arg 'job_payment_ref_hash:string='"'"'${jobRef}'"'"''`,
+      "--payment-amount 3000000000",
+      "--gas-price-tolerance 10",
+      "--pricing-mode classic",
+      "--standard-payment true",
+    ].join(" ");
+
+    const result = JSON.parse(execSync(cmd, { timeout: 30000 }).toString());
+    const txHash = result.result.transaction_hash.Version1;
+
+    // Add to local store
+    const newDecision = {
+      decisionId: decisions.length,
+      agentId,
+      actionClass,
+      inputHash,
+      outputHash,
+      jobPaymentRefHash: jobRef,
+      txHash,
+      blockHeight: 0, // will be populated when confirmed
+      timestamp: new Date().toISOString(),
+      inputData,
+      outputData,
+    };
+    decisions.push(newDecision);
+    saveStore();
+
+    res.json({
+      success: true,
+      decisionId: newDecision.decisionId,
+      inputHash,
+      outputHash,
+      txHash,
+      explorerUrl: `https://testnet.cspr.live/transaction/${txHash}`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to submit transaction", detail: err.message });
+  }
+});
+
+// POST /api/verify — verify decision integrity
+app.post("/api/verify", (req, res) => {
+  const { decisionId, inputData, outputData } = req.body;
+
+  if (decisionId === undefined || !inputData || !outputData) {
+    return res.status(400).json({ error: "Missing decisionId, inputData, or outputData" });
+  }
+
+  const decision = decisions.find((d) => d.decisionId === decisionId);
+  if (!decision) {
+    return res.status(404).json({ error: "Decision not found" });
+  }
+
+  const computedInputHash = sha256(canonicalize(inputData));
+  const computedOutputHash = sha256(canonicalize(outputData));
+
+  const inputMatch = computedInputHash === decision.inputHash;
+  const outputMatch = computedOutputHash === decision.outputHash;
+  const verified = inputMatch && outputMatch;
+
+  res.json({
+    verified,
+    decisionId,
+    onChain: {
+      inputHash: decision.inputHash,
+      outputHash: decision.outputHash,
+      txHash: decision.txHash,
+      blockHeight: decision.blockHeight,
+      agentId: decision.agentId,
+      actionClass: decision.actionClass,
+      explorerUrl: `https://testnet.cspr.live/transaction/${decision.txHash}`,
+    },
+    computed: {
+      inputHash: computedInputHash,
+      outputHash: computedOutputHash,
+    },
+    details: {
+      inputMatch,
+      outputMatch,
+    },
+  });
+});
+
+// GET /api/health — health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", decisions: decisions.length, contract: CONTRACT_PACKAGE });
+});
+
+// Serve frontend static files
+const FRONTEND_DIST = path.join(__dirname, "..", "frontend", "dist");
+if (fs.existsSync(FRONTEND_DIST)) {
+  app.use(express.static(FRONTEND_DIST));
+  // SPA fallback: serve index.html for any non-API route
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(FRONTEND_DIST, "index.html"));
+  });
+}
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`AgentLedger API running on port ${PORT}`);
+  console.log(`Loaded ${decisions.length} decisions`);
+  console.log(`Serving frontend from ${FRONTEND_DIST}`);
+});

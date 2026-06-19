@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vercel/
+*.tsbuildinfo
+.env
+keys/
+keys-v2/
+decisions-store.json

@@ -1,0 +1,154 @@
+[
+  {
+    "decisionId": 0,
+    "agentId": "treasury-agent-01",
+    "actionClass": "vendor_payment_approval",
+    "inputHash": "6552c4861ea6d879333b19684af20a7a16a7fd7d09958b55990dd019409c290a",
+    "outputHash": "f54c519a44a589b58e94de55503193d4c317bba1dc78e9e09aa1e76683d1bc08",
+    "jobPaymentRefHash": "x402-job-0x7f3a2b1c",
+    "txHash": "2ab7b9c8400274066754386ca999ae6344a85d0c33ff6ec433fa5991eeb9e536",
+    "blockHeight": 8233736,
+    "timestamp": "2026-06-19T17:11:08.835Z",
+    "inputData": {
+      "invoice_id": "INV-2026-0847",
+      "vendor": "CloudServ Inc",
+      "amount": 10000,
+      "currency": "USDT",
+      "budget_remaining": 45000
+    },
+    "outputData": {
+      "decision": "APPROVED",
+      "reason": "Within budget threshold (22%)",
+      "payment_amount": 10000,
+      "approval_confidence": 0.94
+    }
+  },
+  {
+    "decisionId": 1,
+    "agentId": "trading-agent-alpha",
+    "actionClass": "swap",
+    "inputHash": "b9af5b7ead1e79560021cec4e0d50816ed366ddb7318e6c1676150a9e9d153bc",
+    "outputHash": "b3e8c687993bb72e156bf77d48fa9151cb0917590c0642aeb4362ebf2f08ea5d",
+    "jobPaymentRefHash": "x402-swap-0xa1b2c3",
+    "txHash": "c2408dbaf9db78ca58f1c4bf4da2fd56d108f92ccfbcbe23bd66677c016fa7ae",
+    "blockHeight": 8233899,
+    "timestamp": "2026-06-19T17:25:00.000Z",
+    "inputData": {
+      "pair": "CSPR/USDT",
+      "amount": 5000,
+      "slippage": 0.3,
+      "market_signal": "bullish_divergence"
+    },
+    "outputData": {
+      "executed": true,
+      "price": 0.0421,
+      "received": 4985,
+      "fee": 15,
+      "confidence": 0.87
+    }
+  },
+  {
+    "decisionId": 2,
+    "agentId": "rebalance-bot-v2",
+    "actionClass": "rebalance",
+    "inputHash": "d40398d0222a52f04c3a45e1a5325e6cb89e6111dcd2badba40c7528337ed1e1",
+    "outputHash": "4251215533a0a57a88735478065f09c980f3a466889d342b50605cc25bcc8933",
+    "jobPaymentRefHash": "x402-rebal-0xd4e5f6",
+    "txHash": "bd4c6513025dab2fd2c733fdb820ca6407f68c507bdec0d9f3a1d442f50919e0",
+    "blockHeight": 8233900,
+    "timestamp": "2026-06-19T17:26:00.000Z",
+    "inputData": {
+      "target": {
+        "CSPR": 40,
+        "BTC": 30,
+        "ETH": 30
+      },
+      "current": {
+        "CSPR": 52,
+        "BTC": 28,
+        "ETH": 20
+      },
+      "drift_pct": 12
+    },
+    "outputData": {
+      "trades": [
+        "sell 12% CSPR",
+        "buy 2% BTC",
+        "buy 10% ETH"
+      ],
+      "estimated_cost": 3.2,
+      "rebalance_id": "rb-0x4f21"
+    }
+  },
+  {
+    "decisionId": 3,
+    "agentId": "risk-monitor-eu",
+    "actionClass": "risk_alert",
+    "inputHash": "874cddd196b879761399efb1c752422fb10980491e57809c8866204d422d7bae",
+    "outputHash": "37b059cdfe19b97b4dc5b9b04b05b277fc7c374d8532a610c965c45164e982ed",
+    "jobPaymentRefHash": "x402-monitor-0xe7f8a9",
+    "txHash": "158194e90a8be7469f95895ccf8541e851459a703e734e14dc3e876d29a88190",
+    "blockHeight": 8233901,
+    "timestamp": "2026-06-19T17:27:00.000Z",
+    "inputData": {
+      "portfolio": "fund-alpha",
+      "threshold": 0.15,
+      "current_drawdown": 0.18,
+      "var_95": 125000
+    },
+    "outputData": {
+      "alert": "DRAWDOWN_EXCEEDED",
+      "severity": "HIGH",
+      "action": "reduce_exposure_20pct",
+      "notified": [
+        "risk-team@fund.io"
+      ]
+    }
+  },
+  {
+    "decisionId": 4,
+    "agentId": "yield-optimizer-3",
+    "actionClass": "yield_harvest",
+    "inputHash": "b7f93c6e41080fe4dff21738ab20ce4bb0393da7ac5d3c239a7ae684f751b3ee",
+    "outputHash": "3b1ba51feddbb5b28f89825f89f50b03a5620f2c26f4203b599240a36e4d101d",
+    "jobPaymentRefHash": "x402-harvest-0x9a2b3c",
+    "txHash": "adcf61872328cb1266a6038d2049fe3f4a1b8867111cafcc08e8a0183a082472",
+    "blockHeight": 8234050,
+    "timestamp": "2026-06-19T17:45:00.000Z",
+    "inputData": {
+      "protocol": "CasperSwap",
+      "pool": "CSPR-USDT",
+      "accrued_yield": 847.5,
+      "gas_cost_estimate": 2.1
+    },
+    "outputData": {
+      "harvested": true,
+      "yield_collected": 847.5,
+      "net_after_gas": 845.4,
+      "reinvested": false
+    }
+  },
+  {
+    "decisionId": 5,
+    "agentId": "treasury-agent-01",
+    "actionClass": "payment_rejection",
+    "inputHash": "bd74a284603a3d832009e87ceefb15af8b12648d77342a346dc1a1fd8b8ccf14",
+    "outputHash": "db38b49001a6f849d7b4552b50fda637bf19dcf1f72afe704f1cf5c98946bbdd",
+    "jobPaymentRefHash": "x402-job-0x4d5e6f",
+    "txHash": "31429e07c8d49dc60a267a4404ecbe49d112d8c91a39a4d277d5aafd0f03f989",
+    "blockHeight": 8234051,
+    "timestamp": "2026-06-19T17:46:00.000Z",
+    "inputData": {
+      "invoice_id": "INV-2026-1192",
+      "vendor": "DataMax Ltd",
+      "amount": 75000,
+      "currency": "USDT",
+      "budget_remaining": 45000
+    },
+    "outputData": {
+      "decision": "REJECTED",
+      "reason": "Amount exceeds remaining budget (167%)",
+      "recommendation": "Escalate to human treasury manager"
+    }
+  }
+]

@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* These are overridden by theme.config.ts at runtime via inline styles.
+       CSS variables here are fallbacks for components that use @apply. */
+    --color-primary: #10b981;
+    --color-primary-hover: #059669;
+    --color-surface: #111827;
+    --color-surface-alt: #1e293b;
+    --color-background: #0a0f1a;
+    --color-border: #1e293b;
+    --color-text: #f8fafc;
+    --color-text-muted: #94a3b8;
+  }
+
+  body {
+    @apply text-[var(--color-text)];
+    background-color: var(--color-background);
+    font-family: var(--font-sans, "DM Sans", system-ui, sans-serif);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { @apply w-1.5; }
+  ::-webkit-scrollbar-track { background: var(--color-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); @apply rounded-full; }
+}
+
+@layer components {
+  /* Cards */
+  .card {
+    @apply p-5;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius, 1rem);
+  }
+  .card-hover {
+    @apply card transition-all duration-200;
+  }
+  .card-hover:hover {
+    border-color: var(--color-text-muted);
+    transform: translateY(-2px);
+  }
+  .card-glass {
+    @apply backdrop-blur-xl p-5;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius, 1rem);
+  }
+
+  /* Badges */
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-primary { @apply badge; background: rgba(16, 185, 129, 0.12); color: #6ee7b7; }
+  .badge-warning { @apply badge; background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+  .badge-error { @apply badge; background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+  .badge-info { @apply badge; background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
+
+  /* Buttons */
+  .btn { @apply px-5 py-2.5 font-medium text-sm transition-all duration-200 cursor-pointer; border-radius: var(--radius, 0.75rem); }
+  .btn-primary { @apply btn text-white; background-color: var(--color-primary); }
+  .btn-primary:hover { background-color: var(--color-primary-hover); transform: translateY(-1px); }
+  .btn-secondary { @apply btn text-[var(--color-text)]; background: var(--color-surface-alt); }
+  .btn-secondary:hover { background: var(--color-border); }
+  .btn-outline { @apply btn bg-transparent text-[var(--color-text)]; border: 1px solid var(--color-border); }
+  .btn-outline:hover { background: var(--color-surface); }
+
+  /* Inputs */
+  .input {
+    @apply px-4 py-2.5 text-sm placeholder-[var(--color-text-muted)] focus:outline-none transition-colors;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius, 0.75rem);
+    color: var(--color-text);
+  }
+  .input:focus { border-color: var(--color-primary); }
+
+  /* Section wrapper */
+  .section { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fade-in-up 0.35s ease-out both; }
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up 0.5s ease-out both; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--color-surface-alt) 25%, var(--color-border) 50%, var(--color-surface-alt) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-count-up { animation: count-up 0.6s ease-out both; }
+
+/* Gradient text — uses primary accent */
+.gradient-text {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, var(--color-primary), #60a5fa);
+}
+
+/* Top glow for stat cards */
+.glow-top { position: relative; }
+.glow-top::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  opacity: 0.4;
+}
+
+/* Skeleton */
+.skeleton {
+  @apply animate-pulse;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius, 0.5rem);
+}
