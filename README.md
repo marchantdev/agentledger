@@ -245,6 +245,27 @@ Response (`verified: false` — tamper detected):
 
 The hash mismatch proves the input was altered after being attested on-chain.
 
+### Self-Check (integrity verification)
+
+```bash
+cd backend
+node self-check.js
+```
+
+Runs 3 automated checks:
+1. **Hash integrity** — independently computes SHA-256 of stored data and compares to stored hashes
+2. **API verification** — verifies original data via `/api/verify` (must return `verified: true`)
+3. **Tamper detection** — modifies data and verifies detection (must return `verified: false`)
+
+### Batch Re-Record (demo setup)
+
+```bash
+cd backend
+node rerecord-decisions.js
+```
+
+Records 6 demo decisions on-chain with real SHA-256 hashes. Requires ~18 CSPR in the signing key.
+
 ## Differentiation
 
 - **vs EAS (Ethereum Attestation Service):** EAS is a generic attestation substrate. AgentLedger is a purpose-built product for agent work receipts with tamper-detection UI, tied to Casper/x402 payment flows.
