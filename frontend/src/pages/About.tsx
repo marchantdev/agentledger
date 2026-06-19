@@ -35,10 +35,10 @@ export default function About() {
           className="text-sm leading-relaxed mt-3"
           style={{ color: theme.colors.textMuted }}
         >
-          The EU AI Act mandates auditability for high-risk AI systems. As AI agents
-          manage increasing amounts of capital and make autonomous decisions,
-          AgentLedger provides the infrastructure to prove what decisions were made,
-          when, and with what inputs.
+          As AI agents manage increasing amounts of capital and make autonomous
+          decisions, accountability becomes critical. AgentLedger provides the
+          infrastructure to prove what decisions were made, when, and with what
+          inputs — especially for agents performing paid work.
         </p>
       </div>
 
@@ -51,24 +51,29 @@ export default function About() {
           style={{ backgroundColor: theme.colors.surfaceAlt }}
         >
           <pre style={{ color: theme.colors.text }}>
-{`import { AgentLedger } from "@agentledger/sdk";
-
-const ledger = new AgentLedger({
-  contractHash: "hash-...",
-  rpcUrl: "https://node.testnet.casper.network",
-  secretKeyPath: "./keys/secret_key.pem",
+{`// Record a decision via the AgentLedger API
+const res = await fetch("/api/record", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    agentId: "treasury-agent-01",
+    actionClass: "vendor_payment_approval",
+    inputData: { invoice_id: "INV-2026-0847", vendor: "CloudServ Inc", amount: 10000 },
+    outputData: { decision: "APPROVED", reason: "Within budget" },
+    jobPaymentRefHash: "x402-job-0x7f3a2b1c",
+  }),
 });
 
-// Wrap any agent decision
-const result = await ledger.attest({
-  agentId: "trading-agent-alpha",
-  actionClass: "swap",
-  inputData: { pair: "CSPR/USDT", amount: 1000 },
-  outputData: { executed: true, price: 0.042 },
-});
+const { txHash, explorerUrl } = await res.json();
+console.log("On-chain:", explorerUrl);
 
-console.log("Decision ID:", result.decisionId);
-console.log("Explorer:", result.explorerUrl);`}
+// Verify — re-hash the data and compare to on-chain record
+const verify = await fetch("/api/verify", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ decisionId: 0, inputData: {...}, outputData: {...} }),
+});
+// { verified: true, chainVerified: true, chainStatus: "finalized" }`}
           </pre>
         </div>
       </div>
@@ -113,12 +118,13 @@ console.log("Explorer:", result.explorerUrl);`}
           style={{ backgroundColor: theme.colors.surfaceAlt }}
         >
           <pre style={{ color: theme.colors.textMuted }}>
-{`// Record a new agent decision
+{`// Record a new agent decision with optional job/payment reference
 record_decision(
   agent_id: String,
   action_class: String,
   input_hash: String,
   output_hash: String,
+  job_payment_ref_hash: String,  // links to x402 payment receipt
 ) -> u64  // returns decision_id
 
 // Query a specific decision
@@ -142,7 +148,7 @@ get_agent_decision_count(agent_id: String) -> u64`}
             {
               icon: Github,
               label: "GitHub Repository",
-              href: "https://github.com/aurora-ai-labs/agentledger",
+              href: "https://github.com/marchantdev/agentledger",
             },
             {
               icon: Globe,

@@ -150,7 +150,7 @@ export default function Landing() {
               style={{ borderColor: theme.colors.border }}
             >
               <a
-                href="https://github.com/aurora-ai-labs/agentledger"
+                href="https://github.com/marchantdev/agentledger"
                 className="flex items-center gap-2 text-sm transition-opacity hover:opacity-80"
                 style={{ color: theme.colors.textMuted }}
               >
