@@ -394,6 +394,32 @@ export default function Verify() {
                   <Shield size={16} style={{ color: theme.colors.accent }} />
                   On-Chain Proof
                 </h3>
+                {/* Chain RPC verification badge */}
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4 text-sm"
+                  style={{
+                    backgroundColor: result.chainVerified
+                      ? theme.colors.success + "12"
+                      : result.chainStatus === "rpc_error"
+                        ? theme.colors.warning + "12"
+                        : theme.colors.error + "12",
+                  }}
+                >
+                  {result.chainVerified ? (
+                    <CheckCircle size={16} style={{ color: theme.colors.success }} />
+                  ) : (
+                    <XCircle size={16} style={{ color: result.chainStatus === "rpc_error" ? theme.colors.warning : theme.colors.error }} />
+                  )}
+                  <span style={{ color: result.chainVerified ? theme.colors.success : result.chainStatus === "rpc_error" ? theme.colors.warning : theme.colors.error }}>
+                    {result.chainVerified
+                      ? "Transaction confirmed on Casper Testnet"
+                      : result.chainStatus === "not_found"
+                        ? "Transaction not found on chain"
+                        : result.chainStatus === "rpc_error"
+                          ? "Chain RPC temporarily unavailable"
+                          : "Chain status: " + result.chainStatus}
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span

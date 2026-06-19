@@ -67,9 +67,8 @@ This proves the decision record hasn't been altered since it was attested.
 | Decision | Agent | Action | Block | TX |
 |----------|-------|--------|-------|----|
 | 0 | treasury-agent-01 | vendor_payment_approval | 8233736 | [2ab7b9c8...](https://testnet.cspr.live/transaction/2ab7b9c8400274066754386ca999ae6344a85d0c33ff6ec433fa5991eeb9e536) |
-| 1 | trading-agent-alpha | swap | 8233899 | [c2408dba...](https://testnet.cspr.live/transaction/c2408dbaf9db78ca58f1c4bf4da2fd56d108f92ccfbcbe23bd66677c016fa7ae) |
-| 2 | rebalance-bot-v2 | rebalance | 8233900 | [bd4c6513...](https://testnet.cspr.live/transaction/bd4c6513025dab2fd2c733fdb820ca6407f68c507bdec0d9f3a1d442f50919e0) |
-| 3 | risk-monitor-eu | risk_alert | 8233901 | [15819...](https://testnet.cspr.live/transaction/158194e90a8be7469f95895ccf8541e851459a703e734e14dc3e876d29a88190) |
+
+> Additional demo scenarios are stored locally and can be re-recorded on-chain via `POST /api/record`. The verification endpoint confirms each decision's tx hash exists on the Casper testnet in real time.
 
 ## Project Structure
 
@@ -170,27 +169,81 @@ casper-client put-transaction package \
 | `/api/verify` | POST | Verify decision integrity against on-chain hashes |
 | `/api/record` | POST | Record a new decision on-chain via `casper-client` |
 
-### Verify Example
+### Record + Verify Example (end-to-end reproducible)
+
+**Step 1: Record a new decision on-chain**
+
+```bash
+curl -X POST http://localhost:3001/api/record \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agentId": "my-treasury-agent",
+    "actionClass": "vendor_payment_approval",
+    "inputData": {"invoice_id":"INV-2026-0001","vendor":"Acme Corp","amount":5000,"currency":"USDT","budget_remaining":20000},
+    "outputData": {"decision":"APPROVED","reason":"Within budget threshold","approval_confidence":0.91},
+    "jobPaymentRefHash": "x402-job-0xabc123"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "decisionId": 1,
+  "inputHash": "a3f2...",
+  "outputHash": "b4e1...",
+  "txHash": "3c7d...",
+  "explorerUrl": "https://testnet.cspr.live/transaction/3c7d..."
+}
+```
+
+**Step 2: Verify the recorded decision (exact original data)**
 
 ```bash
 curl -X POST http://localhost:3001/api/verify \
   -H "Content-Type: application/json" \
   -d '{
-    "decisionId": 0,
-    "inputData": {"invoice_id":"INV-2026-0847","vendor":"CloudServ Inc","amount":10000,"currency":"USDT","budget_remaining":45000},
-    "outputData": {"decision":"APPROVED","reason":"Within budget threshold (22%)","payment_amount":10000,"approval_confidence":0.94}
+    "decisionId": 1,
+    "inputData": {"invoice_id":"INV-2026-0001","vendor":"Acme Corp","amount":5000,"currency":"USDT","budget_remaining":20000},
+    "outputData": {"decision":"APPROVED","reason":"Within budget threshold","approval_confidence":0.91}
   }'
 ```
 
-Response (verified):
+Response (`verified: true`, transaction confirmed on Casper Testnet):
 ```json
 {
   "verified": true,
+  "chainVerified": true,
+  "chainStatus": "finalized",
+  "onChain": { "inputHash": "a3f2...", "txHash": "3c7d...", "blockHeight": 8234100 },
+  "computed": { "inputHash": "a3f2..." },
   "details": { "inputMatch": true, "outputMatch": true }
 }
 ```
 
-Change `amount` to 15000 → `"verified": false, "inputMatch": false`.
+**Step 3: Verify with tampered data** (change `amount` from 5000 to 9999):
+
+```bash
+curl -X POST http://localhost:3001/api/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "decisionId": 1,
+    "inputData": {"invoice_id":"INV-2026-0001","vendor":"Acme Corp","amount":9999,"currency":"USDT","budget_remaining":20000},
+    "outputData": {"decision":"APPROVED","reason":"Within budget threshold","approval_confidence":0.91}
+  }'
+```
+
+Response (`verified: false` — tamper detected):
+```json
+{
+  "verified": false,
+  "chainVerified": true,
+  "chainStatus": "finalized",
+  "details": { "inputMatch": false, "outputMatch": true }
+}
+```
+
+The hash mismatch proves the input was altered after being attested on-chain.
 
 ## Differentiation
 

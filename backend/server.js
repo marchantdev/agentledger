@@ -147,8 +147,8 @@ app.post("/api/record", async (req, res) => {
   }
 });
 
-// POST /api/verify — verify decision integrity
-app.post("/api/verify", (req, res) => {
+// POST /api/verify — verify decision integrity (with on-chain RPC check)
+app.post("/api/verify", async (req, res) => {
   const { decisionId, inputData, outputData } = req.body;
 
   if (decisionId === undefined || !inputData || !outputData) {
@@ -167,8 +167,38 @@ app.post("/api/verify", (req, res) => {
   const outputMatch = computedOutputHash === decision.outputHash;
   const verified = inputMatch && outputMatch;
 
+  // Query Casper testnet RPC to confirm the transaction exists on-chain
+  let chainVerified = false;
+  let chainStatus = "unknown";
+  try {
+    const rpcRes = await fetch(NODE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "info_get_transaction",
+        params: { transaction_hash: { Version1: decision.txHash }, finalized_approvals: false },
+        id: 1,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const rpcJson = await rpcRes.json();
+    if (rpcJson.result && rpcJson.result.transaction) {
+      chainVerified = true;
+      chainStatus = "finalized";
+    } else if (rpcJson.error) {
+      chainStatus = "not_found";
+    } else {
+      chainStatus = "pending";
+    }
+  } catch (_) {
+    chainStatus = "rpc_error";
+  }
+
   res.json({
     verified,
+    chainVerified,
+    chainStatus,
     decisionId,
     onChain: {
       inputHash: decision.inputHash,

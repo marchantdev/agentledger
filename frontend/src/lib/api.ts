@@ -25,6 +25,8 @@ export interface StatsResponse {
 
 export interface VerifyResponse {
   verified: boolean;
+  chainVerified: boolean;
+  chainStatus: "finalized" | "not_found" | "pending" | "rpc_error" | "unknown";
   decisionId: number;
   onChain: {
     inputHash: string;
