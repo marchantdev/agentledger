@@ -28,8 +28,8 @@ const CONTRACT_HASH = "contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59
 
 export default function Landing() {
   const density = densityMap[theme.ui.density];
-  const [totalDecisions, setTotalDecisions] = useState(6);
-  const [totalAgents, setTotalAgents] = useState(4);
+  const [totalDecisions, setTotalDecisions] = useState(0);
+  const [totalAgents, setTotalAgents] = useState(0);
 
   useEffect(() => {
     api.getStats().then((s) => {
