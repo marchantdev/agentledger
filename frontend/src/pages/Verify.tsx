@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Shield,
   ShieldCheck,
@@ -10,11 +10,25 @@ import {
   CheckCircle,
   XCircle,
   ChevronDown,
+  Zap,
+  RotateCcw,
 } from "lucide-react";
 import { theme } from "../theme.config";
 import { api } from "../lib/api";
 import type { DecisionRecord } from "../lib/types";
 import type { VerifyResponse } from "../lib/api";
+
+type DemoStep = "idle" | "verify_original" | "show_verified" | "tampering" | "verify_tampered" | "show_tampered" | "done";
+
+const DEMO_STEP_LABELS: Record<DemoStep, string> = {
+  idle: "",
+  verify_original: "Step 1: Verifying original data against on-chain record...",
+  show_verified: "Data matches on-chain hash. Now watch what happens when data is tampered.",
+  tampering: "Step 2: Simulating tampering — changing the payment amount...",
+  verify_tampered: "Step 2: Verifying tampered data against on-chain record...",
+  show_tampered: "Tampering detected! The hash mismatch proves the data was modified.",
+  done: "Demo complete. The on-chain hash is immutable — any change breaks the match.",
+};
 
 export default function Verify() {
   const [decisions, setDecisions] = useState<DecisionRecord[]>([]);
@@ -26,6 +40,9 @@ export default function Verify() {
   const [result, setResult] = useState<VerifyResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [demoStep, setDemoStep] = useState<DemoStep>("idle");
+  const [demoRunning, setDemoRunning] = useState(false);
+  const outputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     api
@@ -69,6 +86,96 @@ export default function Verify() {
     }
   }, [selected, inputText, outputText]);
 
+  const runGuidedDemo = useCallback(async () => {
+    if (!selected || demoRunning) return;
+    setDemoRunning(true);
+    setError(null);
+
+    // Reset to original data
+    const originalInput = JSON.stringify(selected.inputData || {}, null, 2);
+    const originalOutput = JSON.stringify(selected.outputData || {}, null, 2);
+    setInputText(originalInput);
+    setOutputText(originalOutput);
+    setResult(null);
+
+    // Step 1: Verify original — should pass
+    setDemoStep("verify_original");
+    await new Promise((r) => setTimeout(r, 800));
+    setLoading(true);
+    try {
+      const inputData = JSON.parse(originalInput);
+      const outputData = JSON.parse(originalOutput);
+      const res1 = await api.verify(selected.decisionId, inputData, outputData);
+      setResult(res1);
+      setLoading(false);
+      setDemoStep("show_verified");
+    } catch {
+      setLoading(false);
+      setDemoRunning(false);
+      setDemoStep("idle");
+      setError("Demo failed — could not verify original data");
+      return;
+    }
+
+    // Pause to let user see the VERIFIED result
+    await new Promise((r) => setTimeout(r, 3000));
+
+    // Step 2: Tamper with the data
+    setDemoStep("tampering");
+    setResult(null);
+    await new Promise((r) => setTimeout(r, 600));
+
+    // Modify the output — change amount or decision
+    const tamperedOutput = { ...(selected.outputData || {}) };
+    if ("payment_amount" in tamperedOutput) {
+      tamperedOutput.payment_amount = (tamperedOutput.payment_amount as number) + 5000;
+    } else if ("decision" in tamperedOutput) {
+      tamperedOutput.decision = tamperedOutput.decision === "APPROVED" ? "REJECTED" : "APPROVED";
+    } else {
+      tamperedOutput._tampered = true;
+    }
+    const tamperedOutputText = JSON.stringify(tamperedOutput, null, 2);
+    setOutputText(tamperedOutputText);
+
+    // Scroll to the output textarea
+    if (outputRef.current) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    await new Promise((r) => setTimeout(r, 1200));
+
+    // Step 3: Verify tampered data — should fail
+    setDemoStep("verify_tampered");
+    setLoading(true);
+    try {
+      const inputData = JSON.parse(originalInput);
+      const res2 = await api.verify(selected.decisionId, inputData, tamperedOutput);
+      setResult(res2);
+      setLoading(false);
+      setDemoStep("show_tampered");
+    } catch {
+      setLoading(false);
+      setDemoStep("idle");
+      setDemoRunning(false);
+      setError("Demo failed — could not verify tampered data");
+      return;
+    }
+
+    await new Promise((r) => setTimeout(r, 2000));
+    setDemoStep("done");
+    setDemoRunning(false);
+  }, [selected, demoRunning]);
+
+  const resetDemo = () => {
+    setDemoStep("idle");
+    setDemoRunning(false);
+    if (selected) {
+      setInputText(JSON.stringify(selected.inputData || {}, null, 2));
+      setOutputText(JSON.stringify(selected.outputData || {}, null, 2));
+    }
+    setResult(null);
+    setError(null);
+  };
+
   if (fetchLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -92,9 +199,79 @@ export default function Verify() {
         </h1>
         <p className="text-sm mt-1" style={{ color: theme.colors.textMuted }}>
           Prove that a recorded agent decision hasn't been tampered with.
-          Edit the data below to see tamper detection in action.
+          Edit the data below or run the guided demo.
         </p>
       </div>
+
+      {/* Guided Demo Banner */}
+      {selected && demoStep === "idle" && (
+        <button
+          onClick={runGuidedDemo}
+          className={`w-full flex items-center gap-4 p-4 ${theme.ui.radius} border text-left transition-all hover:border-current`}
+          style={{
+            borderColor: theme.colors.primary + "40",
+            backgroundColor: theme.colors.primary + "08",
+          }}
+        >
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: theme.colors.primary + "20" }}
+          >
+            <Zap size={20} style={{ color: theme.colors.primary }} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium" style={{ color: theme.colors.text }}>
+              Try the Guided Demo
+            </p>
+            <p className="text-xs" style={{ color: theme.colors.textMuted }}>
+              Watch tamper detection in action: verify original data, then see what happens when it's changed.
+            </p>
+          </div>
+          <span
+            className="text-xs px-3 py-1.5 rounded-full font-medium flex-shrink-0"
+            style={{ backgroundColor: theme.colors.primary, color: "#000" }}
+          >
+            Run Demo
+          </span>
+        </button>
+      )}
+
+      {/* Demo progress indicator */}
+      {demoStep !== "idle" && (
+        <div
+          className={`flex items-center gap-3 p-4 ${theme.ui.radius} border`}
+          style={{
+            borderColor: demoStep === "done"
+              ? theme.colors.success + "40"
+              : demoStep.includes("tamper")
+                ? theme.colors.error + "40"
+                : theme.colors.primary + "40",
+            backgroundColor: demoStep === "done"
+              ? theme.colors.success + "08"
+              : demoStep.includes("tamper")
+                ? theme.colors.error + "08"
+                : theme.colors.primary + "08",
+          }}
+        >
+          {demoRunning ? (
+            <Loader2 size={16} className="animate-spin flex-shrink-0" style={{ color: theme.colors.primary }} />
+          ) : (
+            <CheckCircle size={16} className="flex-shrink-0" style={{ color: theme.colors.success }} />
+          )}
+          <p className="text-sm flex-1" style={{ color: theme.colors.text }}>
+            {DEMO_STEP_LABELS[demoStep]}
+          </p>
+          {!demoRunning && (
+            <button
+              onClick={resetDemo}
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors hover:bg-white/10"
+              style={{ color: theme.colors.textMuted }}
+            >
+              <RotateCcw size={12} /> Reset
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Decision selector */}
       <div className="relative">
@@ -105,12 +282,14 @@ export default function Verify() {
           Select Decision
         </label>
         <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
+          onClick={() => !demoRunning && setDropdownOpen(!dropdownOpen)}
+          disabled={demoRunning}
           className={`w-full flex items-center justify-between px-4 py-3 ${theme.ui.radius} border text-left transition-colors`}
           style={{
             borderColor: theme.colors.border,
             backgroundColor: theme.colors.surface,
             color: theme.colors.text,
+            opacity: demoRunning ? 0.5 : 1,
           }}
         >
           {selected ? (
@@ -251,10 +430,12 @@ export default function Verify() {
                   setResult(null);
                 }}
                 rows={8}
+                disabled={demoRunning}
                 className={`w-full px-3 py-2 ${theme.ui.radius} border text-xs font-mono bg-transparent resize-none focus:outline-none focus:ring-1`}
                 style={{
                   borderColor: theme.colors.border,
                   color: theme.colors.text,
+                  opacity: demoRunning ? 0.7 : 1,
                 }}
                 spellCheck={false}
               />
@@ -265,21 +446,32 @@ export default function Verify() {
                 style={{ color: theme.colors.textMuted }}
               >
                 <Hash size={12} /> Output Data
-                <span className="normal-case tracking-normal opacity-60">
-                  (edit to test tamper detection)
-                </span>
+                {demoStep === "tampering" || demoStep === "verify_tampered" || demoStep === "show_tampered" || demoStep === "done" ? (
+                  <span className="normal-case tracking-normal text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: theme.colors.error + "20", color: theme.colors.error }}>
+                    modified
+                  </span>
+                ) : (
+                  <span className="normal-case tracking-normal opacity-60">
+                    (edit to test tamper detection)
+                  </span>
+                )}
               </label>
               <textarea
+                ref={outputRef}
                 value={outputText}
                 onChange={(e) => {
                   setOutputText(e.target.value);
                   setResult(null);
                 }}
                 rows={8}
-                className={`w-full px-3 py-2 ${theme.ui.radius} border text-xs font-mono bg-transparent resize-none focus:outline-none focus:ring-1`}
+                disabled={demoRunning}
+                className={`w-full px-3 py-2 ${theme.ui.radius} border text-xs font-mono bg-transparent resize-none focus:outline-none focus:ring-1 transition-colors`}
                 style={{
-                  borderColor: theme.colors.border,
+                  borderColor: demoStep === "tampering" || demoStep === "verify_tampered" || demoStep === "show_tampered"
+                    ? theme.colors.error + "60"
+                    : theme.colors.border,
                   color: theme.colors.text,
+                  opacity: demoRunning ? 0.7 : 1,
                 }}
                 spellCheck={false}
               />
@@ -289,7 +481,7 @@ export default function Verify() {
           {/* Verify button */}
           <button
             onClick={handleVerify}
-            disabled={loading}
+            disabled={loading || demoRunning}
             className="btn-primary flex items-center justify-center gap-2 w-full py-3 text-base"
           >
             {loading ? (
