@@ -12,9 +12,11 @@ AgentLedger is a Casper-native accountability layer for AI agents performing pai
 
 **[Try it here](https://beast-minnesota-parish-monkey.trycloudflare.com)** (Casper Testnet)
 
-- **Dashboard** — Real-time view of all agent decisions with on-chain explorer links
+- **Dashboard** — Real-time view of all agent decisions with on-chain stats and explorer links
+- **Receipts** — Shareable `/receipt/:id` pages with chain verification badge, tamper demo, and QR code
+- **Agent Workbench** — Run fixed vendor-payment/DeFi/risk scenarios live on Casper testnet (rate-limited + abuse-protected)
 - **Verify** — Select any decision, edit the data, and watch tamper detection in action
-- **Record** — Submit new agent decisions to the Casper testnet
+- **Audit Export** — Download audit-ready receipt reports in Markdown or JSON
 - **Explorer** — Search and filter decisions by agent, action class, or time
 
 ## How It Works
