@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Clock, ExternalLink, Hash, Shield, Filter, Loader2 } from "lucide-react";
+import { Clock, ExternalLink, Hash, Shield, Filter, Loader2, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 import StatCards from "../components/StatCards";
 import { theme, densityMap } from "../theme.config";
 import { api } from "../lib/api";
@@ -217,12 +218,19 @@ function DecisionRow({ decision: d, index }: { decision: DecisionRecord; index: 
         <span className="text-xs whitespace-nowrap flex items-center gap-1" style={{ color: theme.colors.textMuted }}>
           <Clock size={10} /> {timeAgo(d.timestamp)}
         </span>
+        <Link
+          to={`/receipt/${d.decisionId}`}
+          className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
+          style={{ color: theme.colors.primary }}
+        >
+          <FileText size={10} /> Receipt
+        </Link>
         <a
           href={`https://testnet.cspr.live/transaction/${d.txHash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
-          style={{ color: theme.colors.primary }}
+          style={{ color: theme.colors.textMuted }}
         >
           <ExternalLink size={10} /> Explorer
         </a>

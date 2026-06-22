@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { Send, CheckCircle, Hash, ExternalLink, Loader2, Shield, Copy, Check, AlertTriangle } from "lucide-react";
+import { Send, CheckCircle, Hash, ExternalLink, Loader2, Shield, Copy, Check, AlertTriangle, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 import { theme, densityMap } from "../theme.config";
 import { api } from "../lib/api";
 import type { RecordResponse } from "../lib/api";
@@ -240,15 +241,24 @@ export default function RecordDemo() {
                 </div>
               ))}
 
-              <a
-                href={result.explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2 mt-2 text-sm rounded-lg border transition-colors"
-                style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}
-              >
-                <ExternalLink size={14} /> View on Casper Explorer
-              </a>
+              <div className="flex gap-3 mt-2">
+                <Link
+                  to={`/receipt/${result.decisionId}`}
+                  className="flex items-center justify-center gap-2 flex-1 py-2 text-sm rounded-lg border transition-colors hover:bg-white/5"
+                  style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}
+                >
+                  <FileText size={14} /> View Receipt
+                </Link>
+                <a
+                  href={result.explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 flex-1 py-2 text-sm rounded-lg border transition-colors hover:bg-white/5"
+                  style={{ borderColor: theme.colors.border, color: theme.colors.textMuted }}
+                >
+                  <ExternalLink size={14} /> Casper Explorer
+                </a>
+              </div>
             </div>
           )}
         </div>
