@@ -539,7 +539,11 @@ export default function Verify() {
                       fontFamily: theme.fonts.headline,
                     }}
                   >
-                    {result.verified ? "VERIFIED" : "TAMPERED"}
+                    {result.verified
+                      ? "VERIFIED"
+                      : result.chainStatus === "rpc_error" || result.chainStatus === "parse_failed" || result.chainStatus === "not_found"
+                        ? "UNVERIFIABLE"
+                        : "TAMPERED"}
                   </p>
                   <p
                     className="text-sm mt-0.5"
@@ -547,7 +551,11 @@ export default function Verify() {
                   >
                     {result.verified
                       ? "Decision data matches the on-chain record exactly."
-                      : "Decision data does not match the on-chain attestation. The data has been modified."}
+                      : result.chainStatus === "rpc_error" || result.chainStatus === "parse_failed"
+                        ? "Could not verify — chain RPC unavailable. The decision record is unchanged."
+                        : result.chainStatus === "not_found"
+                          ? "Could not verify — transaction not found on Casper Testnet."
+                          : "Decision data does not match the on-chain attestation. The data has been modified."}
                   </p>
                 </div>
               </div>
@@ -564,13 +572,13 @@ export default function Verify() {
                 <div className="space-y-3">
                   <HashRow
                     label="Input Hash"
-                    onChain={result.onChain.inputHash}
+                    onChain={result.onChain.inputHash ?? "—"}
                     computed={result.computed.inputHash}
                     match={result.details.inputMatch}
                   />
                   <HashRow
                     label="Output Hash"
-                    onChain={result.onChain.outputHash}
+                    onChain={result.onChain.outputHash ?? "—"}
                     computed={result.computed.outputHash}
                     match={result.details.outputMatch}
                   />
@@ -592,7 +600,7 @@ export default function Verify() {
                   style={{
                     backgroundColor: result.chainVerified
                       ? theme.colors.success + "12"
-                      : result.chainStatus === "rpc_error"
+                      : result.chainStatus === "rpc_error" || result.chainStatus === "parse_failed"
                         ? theme.colors.warning + "12"
                         : theme.colors.error + "12",
                   }}
@@ -600,16 +608,18 @@ export default function Verify() {
                   {result.chainVerified ? (
                     <CheckCircle size={16} style={{ color: theme.colors.success }} />
                   ) : (
-                    <XCircle size={16} style={{ color: result.chainStatus === "rpc_error" ? theme.colors.warning : theme.colors.error }} />
+                    <XCircle size={16} style={{ color: result.chainStatus === "rpc_error" || result.chainStatus === "parse_failed" ? theme.colors.warning : theme.colors.error }} />
                   )}
-                  <span style={{ color: result.chainVerified ? theme.colors.success : result.chainStatus === "rpc_error" ? theme.colors.warning : theme.colors.error }}>
+                  <span style={{ color: result.chainVerified ? theme.colors.success : result.chainStatus === "rpc_error" || result.chainStatus === "parse_failed" ? theme.colors.warning : theme.colors.error }}>
                     {result.chainVerified
-                      ? "Transaction confirmed on Casper Testnet"
+                      ? "Transaction args verified on Casper Testnet"
                       : result.chainStatus === "not_found"
                         ? "Transaction not found on chain"
                         : result.chainStatus === "rpc_error"
-                          ? "Chain RPC temporarily unavailable"
-                          : "Chain status: " + result.chainStatus}
+                          ? "Chain RPC temporarily unavailable — try again"
+                          : result.chainStatus === "parse_failed"
+                            ? "Could not parse transaction args from chain"
+                            : "Chain status: " + result.chainStatus}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -668,11 +678,17 @@ export default function Verify() {
                     style={{ color: theme.colors.warning }}
                   />
                   <p className="text-sm" style={{ color: theme.colors.text }}>
-                    {!result.details.inputMatch && !result.details.outputMatch
-                      ? "Both input and output data have been modified since this decision was recorded on-chain."
-                      : !result.details.inputMatch
-                        ? "The input data has been modified since this decision was recorded on-chain."
-                        : "The output data has been modified since this decision was recorded on-chain."}
+                    {result.chainStatus === "rpc_error" || result.chainStatus === "parse_failed"
+                      ? (result.details.rpcParseError
+                          ? `Verification failed: ${result.details.rpcParseError}`
+                          : "Verification failed: chain is temporarily unavailable. Try again.")
+                      : result.chainStatus === "not_found"
+                        ? "Verification failed: this transaction was not found on Casper Testnet."
+                        : !result.details.inputMatch && !result.details.outputMatch
+                          ? "Both input and output data have been modified since this decision was recorded on-chain."
+                          : !result.details.inputMatch
+                            ? "The input data has been modified since this decision was recorded on-chain."
+                            : "The output data has been modified since this decision was recorded on-chain."}
                   </p>
                 </div>
               )}

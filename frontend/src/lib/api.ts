@@ -26,11 +26,11 @@ export interface StatsResponse {
 export interface VerifyResponse {
   verified: boolean;
   chainVerified: boolean;
-  chainStatus: "finalized" | "not_found" | "pending" | "rpc_error" | "unknown";
+  chainStatus: "finalized" | "not_found" | "pending" | "rpc_error" | "parse_failed" | "unknown";
   decisionId: number;
   onChain: {
-    inputHash: string;
-    outputHash: string;
+    inputHash: string | null;
+    outputHash: string | null;
     txHash: string;
     blockHeight: number;
     agentId: string;
@@ -44,6 +44,7 @@ export interface VerifyResponse {
   details: {
     inputMatch: boolean;
     outputMatch: boolean;
+    rpcParseError?: string;
   };
 }
 

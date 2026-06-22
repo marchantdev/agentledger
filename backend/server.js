@@ -147,7 +147,9 @@ app.post("/api/record", async (req, res) => {
   }
 });
 
-// POST /api/verify — verify decision integrity (with on-chain RPC check)
+// POST /api/verify — verify decision integrity against on-chain Casper RPC transaction args
+// The authoritative source is the transaction's named args on-chain, NOT the local store.
+// Fail-closed: if the RPC is unavailable or args cannot be parsed, verification fails.
 app.post("/api/verify", async (req, res) => {
   const { decisionId, inputData, outputData } = req.body;
 
@@ -160,16 +162,18 @@ app.post("/api/verify", async (req, res) => {
     return res.status(404).json({ error: "Decision not found" });
   }
 
+  // Recompute hashes from the provided data
   const computedInputHash = sha256(canonicalize(inputData));
   const computedOutputHash = sha256(canonicalize(outputData));
 
-  const inputMatch = computedInputHash === decision.inputHash;
-  const outputMatch = computedOutputHash === decision.outputHash;
-  const verified = inputMatch && outputMatch;
-
-  // Query Casper testnet RPC to confirm the transaction exists on-chain
-  let chainVerified = false;
+  // Query Casper RPC and parse on-chain transaction args — this is the authoritative source
   let chainStatus = "unknown";
+  let chainVerified = false; // true = transaction found and args parseable on-chain
+  let onChainInputHash = null;
+  let onChainOutputHash = null;
+  let rpcParseError = null;
+  let blockHeight = decision.blockHeight;
+
   try {
     const rpcRes = await fetch(NODE_URL, {
       method: "POST",
@@ -180,20 +184,58 @@ app.post("/api/verify", async (req, res) => {
         params: { transaction_hash: { Version1: decision.txHash }, finalized_approvals: false },
         id: 1,
       }),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(10000),
     });
     const rpcJson = await rpcRes.json();
+
     if (rpcJson.result && rpcJson.result.transaction) {
-      chainVerified = true;
-      chainStatus = "finalized";
+      const tx = rpcJson.result.transaction;
+      // Casper V2 transaction format: Version1.payload.fields.args.Named (array of [name, value])
+      // Fallback: some node versions may use Version1.body.args
+      const v1 = tx.Version1;
+      const namedArgs =
+        v1?.payload?.fields?.args?.Named ||  // standard V2 format
+        v1?.body?.args ||                    // alternative format
+        null;
+
+      if (Array.isArray(namedArgs)) {
+        for (const [argName, argValue] of namedArgs) {
+          if (argName === "input_hash") {
+            onChainInputHash = argValue?.parsed ?? null;
+          } else if (argName === "output_hash") {
+            onChainOutputHash = argValue?.parsed ?? null;
+          }
+        }
+      }
+
+      // Extract confirmed block height if available
+      if (rpcJson.result.execution_info?.block_height) {
+        blockHeight = rpcJson.result.execution_info.block_height;
+      }
+
+      if (onChainInputHash !== null && onChainOutputHash !== null) {
+        chainStatus = "finalized";
+        chainVerified = true; // transaction found and args successfully parsed
+      } else {
+        chainStatus = "parse_failed";
+        rpcParseError = "Could not extract input_hash/output_hash from on-chain transaction args";
+      }
     } else if (rpcJson.error) {
       chainStatus = "not_found";
+      rpcParseError = rpcJson.error.message || "Transaction not found on-chain";
     } else {
       chainStatus = "pending";
     }
-  } catch (_) {
+  } catch (err) {
     chainStatus = "rpc_error";
+    rpcParseError = err.message;
   }
+
+  // Compare computed hashes against on-chain values (NOT local store)
+  // Fail closed: if on-chain values are null (RPC failed), matches are false
+  const inputMatch = onChainInputHash !== null && computedInputHash === onChainInputHash;
+  const outputMatch = onChainOutputHash !== null && computedOutputHash === onChainOutputHash;
+  const verified = inputMatch && outputMatch;
 
   res.json({
     verified,
@@ -201,10 +243,11 @@ app.post("/api/verify", async (req, res) => {
     chainStatus,
     decisionId,
     onChain: {
-      inputHash: decision.inputHash,
-      outputHash: decision.outputHash,
+      // These hashes are parsed from the on-chain transaction args, not the local store
+      inputHash: onChainInputHash,
+      outputHash: onChainOutputHash,
       txHash: decision.txHash,
-      blockHeight: decision.blockHeight,
+      blockHeight,
       agentId: decision.agentId,
       actionClass: decision.actionClass,
       explorerUrl: `https://testnet.cspr.live/transaction/${decision.txHash}`,
@@ -216,6 +259,7 @@ app.post("/api/verify", async (req, res) => {
     details: {
       inputMatch,
       outputMatch,
+      ...(rpcParseError && { rpcParseError }),
     },
   });
 });
