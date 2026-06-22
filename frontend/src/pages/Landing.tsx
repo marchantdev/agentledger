@@ -8,9 +8,9 @@ import { api } from "../lib/api";
 
 const valueProps = [
   {
-    title: "Verifiable Receipts for Paid Work",
+    title: "Receipts Bound to Payment References",
     description:
-      "Every agent decision is hashed and recorded on Casper. If an agent gets paid, it leaves a receipt. One transaction, one tamper-proof record.",
+      "Each decision receipt includes a payment/job reference hash — linking the agent's action to the work it was paid for. One receipt ties decision, proof, and payment together.",
   },
   {
     title: "Tamper Detection Built In",
@@ -18,9 +18,9 @@ const valueProps = [
       "Verify any decision against its on-chain attestation. If a single character changes, the hash breaks. Instant proof of integrity or tampering.",
   },
   {
-    title: "Real-Time Audit Trail",
+    title: "Audit-Ready Trail",
     description:
-      "Browse agent decision receipts, each linked to its on-chain attestation. Click through to Casper explorer for cryptographic proof.",
+      "Every receipt is on-chain with input/output hashes, a payment/job reference, and a Casper transaction hash. Click through to the explorer for cryptographic proof.",
   },
 ];
 
@@ -92,8 +92,8 @@ export default function Landing() {
             },
             {
               step: "2",
-              title: "Hash Recorded On-Chain",
-              desc: "Input/output are SHA-256 hashed and submitted to the Casper DecisionRegistry contract. Immutable receipt.",
+              title: "Receipt Recorded On-Chain",
+              desc: "Input, output, and a payment/job reference are SHA-256 hashed and submitted to the Casper DecisionRegistry. One immutable receipt per decision.",
             },
             {
               step: "3",

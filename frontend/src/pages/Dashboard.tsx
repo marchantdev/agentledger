@@ -207,6 +207,11 @@ function DecisionRow({ decision: d, index }: { decision: DecisionRecord; index: 
             <Hash size={10} />{truncateHash(d.outputHash)}
           </span>
         </div>
+        {d.jobPaymentRefHash && (
+          <p className="text-xs mt-1" style={{ color: theme.colors.accent }}>
+            Job ref: {truncateHash(d.jobPaymentRefHash)}
+          </p>
+        )}
       </div>
       <div className="flex flex-col items-end gap-1">
         <span className="text-xs whitespace-nowrap flex items-center gap-1" style={{ color: theme.colors.textMuted }}>

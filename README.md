@@ -4,7 +4,7 @@
 
 > *If an agent gets paid, it leaves a receipt.*
 
-AgentLedger is an on-chain accountability layer for AI agents performing paid work. Every agent decision — approvals, trades, alerts, rejections — is hashed and recorded as an immutable receipt on the Casper blockchain. Anyone can verify that a decision hasn't been tampered with by recomputing hashes and comparing against the on-chain attestation.
+AgentLedger is an on-chain accountability layer for AI agents performing paid work. Every agent decision — approvals, trades, alerts, rejections — is hashed and recorded as an immutable receipt on the Casper blockchain. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Anyone can verify that a decision hasn't been tampered with by recomputing hashes and comparing against the on-chain attestation.
 
 **Built for the [Casper Agentic Buildathon 2026](https://dorahacks.io/hackathon/casper-agentic-buildathon).**
 
@@ -21,10 +21,12 @@ AgentLedger is an on-chain accountability layer for AI agents performing paid wo
 
 ```
 1. Agent makes a decision (approve payment, execute trade, flag risk)
-2. Input and output data are SHA-256 hashed
+2. Input, output, and a payment/job reference are SHA-256 hashed
 3. Hashes are submitted to the DecisionRegistry contract on Casper testnet
 4. Anyone can verify: re-hash the original data → compare to on-chain → match = verified, mismatch = tampered
 ```
+
+The **payment/job reference hash** is the key differentiator — it ties each decision receipt to the specific job or payment the agent was fulfilling. This makes AgentLedger audit-ready: auditors can trace from a financial record to the exact on-chain proof of the agent's decision.
 
 ### Architecture
 
