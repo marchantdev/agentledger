@@ -8,6 +8,7 @@ import RecordDemo from "./pages/RecordDemo";
 import Receipt from "./pages/Receipt";
 import Workbench from "./pages/Workbench";
 import About from "./pages/About";
+import DisputeCaseFile from "./pages/DisputeCaseFile";
 
 export default function AppRouter() {
   return (
@@ -24,6 +25,7 @@ export default function AppRouter() {
           <Route path="/record" element={<RecordDemo />} />
           <Route path="/receipt/:id" element={<Receipt />} />
           <Route path="/workbench" element={<Workbench />} />
+          <Route path="/dispute" element={<DisputeCaseFile />} />
           <Route path="/about" element={<About />} />
         </Route>
       </Routes>

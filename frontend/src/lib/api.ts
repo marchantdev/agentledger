@@ -99,9 +99,16 @@ export const api = {
     return verifyDecision(decision, inputData, outputData);
   },
 
-  // Record is not available in static mode
-  record: async (_data?: any): Promise<RecordResponse> => {
-    throw new Error("Recording is not available in static demo mode. The 6 existing decisions were recorded on-chain during the live demo.");
+  // Record a decision on-chain via Vercel proxy
+  record: async (scenario: string): Promise<RecordResponse> => {
+    const res = await fetch("/api/workbench/record", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenario }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.detail || data.error);
+    return data;
   },
 
   health: async () => {
@@ -109,15 +116,26 @@ export const api = {
     return { status: "ok", decisions: all.length };
   },
 
-  // Workbench recording not available in static mode
-  workbenchRecord: async (): Promise<RecordResponse> => {
-    throw new Error("Live recording is not available in static demo mode.");
+  // Record via workbench (live on-chain)
+  workbenchRecord: async (scenario: string): Promise<RecordResponse> => {
+    const res = await fetch("/api/workbench/record", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenario }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.detail || data.error);
+    return data;
   },
 
   workbenchLimits: async (): Promise<WorkbenchLimitsResponse> => {
+    try {
+      const res = await fetch("/api/backend/workbench/limits");
+      if (res.ok) return res.json();
+    } catch { /* fall through to defaults */ }
     return {
-      rateLimit: { max: 3, remaining: 0, windowMs: 60000 },
-      session: { recordings: 5, cap: 5 },
+      rateLimit: { max: 3, remaining: 3, windowMs: 60000 },
+      session: { recordings: 0, cap: 5 },
     };
   },
 

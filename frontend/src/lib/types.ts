@@ -1,5 +1,13 @@
 /** AgentLedger type definitions */
 
+export interface AgentTrace {
+  policy_version: string;
+  decision_factors: string[];
+  risk_score: number;
+  agent_reasoning_summary: string;
+  agent_type: "deterministic_policy"; // honest: not a frontier LLM
+}
+
 export interface DecisionRecord {
   decisionId: number;
   agentId: string;
@@ -12,6 +20,7 @@ export interface DecisionRecord {
   timestamp: string;
   inputData?: Record<string, any>;
   outputData?: Record<string, any>;
+  trace?: AgentTrace;
 }
 
 export interface AgentSummary {

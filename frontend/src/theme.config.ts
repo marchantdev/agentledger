@@ -59,6 +59,7 @@ export const theme = {
     { label: "Dashboard", path: "/dashboard" },
     { label: "Workbench", path: "/workbench" },
     { label: "Verify", path: "/verify" },
+    { label: "Dispute Demo", path: "/dispute" },
     { label: "Record", path: "/record" },
     { label: "Docs", path: "/about" },
   ],

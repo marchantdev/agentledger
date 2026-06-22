@@ -19,6 +19,10 @@ import {
   User,
   Box,
   Download,
+  Brain,
+  Activity,
+  ChevronDown,
+  Code,
 } from "lucide-react";
 import { theme } from "../theme.config";
 import { api } from "../lib/api";
@@ -38,6 +42,7 @@ export default function Receipt() {
   const [tamperResult, setTamperResult] = useState<VerifyResponse | null>(null);
   const [tamperVerifying, setTamperVerifying] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [proofOpen, setProofOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -264,6 +269,98 @@ export default function Receipt() {
         </div>
       </div>
 
+      {/* Agent Trace — policy reasoning */}
+      {decision.trace && (
+        <div className={`card ${theme.ui.radius} space-y-4`}>
+          <h2
+            className="font-semibold flex items-center gap-2"
+            style={{ color: theme.colors.text }}
+          >
+            <Brain size={16} style={{ color: theme.colors.accent }} />
+            Agent Policy Trace
+          </h2>
+          <p className="text-xs" style={{ color: theme.colors.textMuted }}>
+            Deterministic reasoning recorded at decision time — included in the hashed attestation.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <span className="text-xs uppercase tracking-wider" style={{ color: theme.colors.textMuted }}>
+                Policy Version
+              </span>
+              <p className="text-sm font-mono mt-1" style={{ color: theme.colors.text }}>
+                {decision.trace.policy_version}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs uppercase tracking-wider" style={{ color: theme.colors.textMuted }}>
+                Risk Score
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: theme.colors.surfaceAlt }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(decision.trace.risk_score * 100, 100)}%`,
+                      backgroundColor: decision.trace.risk_score <= 0.3
+                        ? theme.colors.success
+                        : decision.trace.risk_score <= 0.6
+                          ? theme.colors.warning || "#f59e0b"
+                          : theme.colors.error,
+                    }}
+                  />
+                </div>
+                <span className="text-xs font-mono" style={{ color: theme.colors.text }}>
+                  {(decision.trace.risk_score * 100).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <span className="text-xs uppercase tracking-wider" style={{ color: theme.colors.textMuted }}>
+                Agent Type
+              </span>
+              <p className="text-sm font-mono mt-1" style={{ color: theme.colors.text }}>
+                {decision.trace.agent_type}
+              </p>
+            </div>
+          </div>
+
+          {/* Decision Factors */}
+          <div>
+            <span className="text-xs uppercase tracking-wider flex items-center gap-1.5 mb-2" style={{ color: theme.colors.textMuted }}>
+              <Activity size={12} /> Decision Factors
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {decision.trace.decision_factors.map((factor, i) => (
+                <span
+                  key={i}
+                  className="text-xs px-2.5 py-1 rounded-full"
+                  style={{
+                    backgroundColor: theme.colors.primary + "15",
+                    color: theme.colors.primary,
+                  }}
+                >
+                  {factor}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Reasoning Summary */}
+          <div>
+            <span className="text-xs uppercase tracking-wider mb-1.5 block" style={{ color: theme.colors.textMuted }}>
+              Reasoning Summary
+            </span>
+            <div
+              className="p-3 rounded-lg text-sm leading-relaxed"
+              style={{ backgroundColor: theme.colors.surfaceAlt, color: theme.colors.text }}
+            >
+              {decision.trace.agent_reasoning_summary}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cryptographic proof */}
       <div className={`card ${theme.ui.radius} space-y-4`}>
         <h2
@@ -363,6 +460,85 @@ export default function Receipt() {
           <span style={{ color: theme.colors.textMuted }}>
             Verified directly via Casper RPC — no third-party explorer required.
           </span>
+        </div>
+
+        {/* Collapsible Raw Proof Drawer */}
+        <div>
+          <button
+            onClick={() => setProofOpen(!proofOpen)}
+            className="w-full flex items-center justify-between py-2 text-sm transition-opacity hover:opacity-80"
+            style={{ color: theme.colors.textMuted }}
+          >
+            <span className="flex items-center gap-2">
+              <Code size={14} />
+              Raw Casper Proof Data
+            </span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${proofOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {proofOpen && (
+            <div className="animate-fade-in-up">
+              <div
+                className="rounded-lg p-4 text-xs font-mono overflow-x-auto space-y-4"
+                style={{ backgroundColor: theme.colors.surfaceAlt }}
+              >
+                {/* Transaction args */}
+                <div>
+                  <span className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: theme.colors.textMuted }}>
+                    Named Arguments (on-chain)
+                  </span>
+                  <pre style={{ color: theme.colors.text }} className="whitespace-pre-wrap break-all">
+{JSON.stringify({
+  agent_id: decision.agentId,
+  action_class: decision.actionClass,
+  input_hash: decision.inputHash,
+  output_hash: decision.outputHash,
+  job_payment_ref_hash: decision.jobPaymentRefHash || "(empty)",
+}, null, 2)}
+                  </pre>
+                </div>
+
+                {/* Transaction metadata */}
+                <div className="border-t pt-3" style={{ borderColor: theme.colors.border + "40" }}>
+                  <span className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: theme.colors.textMuted }}>
+                    Transaction Metadata
+                  </span>
+                  <pre style={{ color: theme.colors.text }} className="whitespace-pre-wrap break-all">
+{JSON.stringify({
+  transaction_hash: decision.txHash,
+  block_height: decision.blockHeight,
+  contract_package: "hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb",
+  entry_point: "record_decision",
+  chain: "casper-test",
+  timestamp: decision.timestamp,
+}, null, 2)}
+                  </pre>
+                </div>
+
+                {/* Verification state */}
+                {verification && (
+                  <div className="border-t pt-3" style={{ borderColor: theme.colors.border + "40" }}>
+                    <span className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: theme.colors.textMuted }}>
+                      RPC Verification Result
+                    </span>
+                    <pre style={{ color: theme.colors.text }} className="whitespace-pre-wrap break-all">
+{JSON.stringify({
+  chain_verified: verification.chainVerified,
+  chain_status: verification.chainStatus,
+  input_match: verification.details.inputMatch,
+  output_match: verification.details.outputMatch,
+  on_chain_input_hash: verification.onChain.inputHash,
+  on_chain_output_hash: verification.onChain.outputHash,
+  explorer_url: verification.onChain.explorerUrl,
+}, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,10 +1,10 @@
 # AgentLedger
 
-**Verifiable receipts for autonomous AI agents on Casper.**
+**Verifiable receipts for AI agents doing paid work — built on Casper.**
 
 > *If an agent gets paid, it leaves a receipt.*
 
-AgentLedger is a Casper-native accountability layer for AI agents performing paid work. Every agent decision — approvals, trades, alerts, rejections — is hashed and recorded as an immutable receipt on the Casper blockchain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Anyone can verify that a decision hasn't been tampered with by recomputing hashes and comparing against the on-chain attestation. Casper's enterprise-grade finality and institutional adoption roadmap make it the natural ledger for regulated agent work — agents operating in finance, compliance, and operations need audit trails that institutions can trust.
+AgentLedger records tamper-evident decision receipts for autonomous AI agents on the Casper blockchain. When an agent makes a decision — approving a payment, executing a trade, flagging a risk — AgentLedger hashes the decision data and stores it on-chain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Anyone can verify that a receipt hasn't been tampered with by recomputing hashes and comparing against the on-chain attestation. Hash-only storage means no raw prompts or output data on-chain — audit-ready evidence with privacy.
 
 **Built for the [Casper Agentic Buildathon 2026](https://dorahacks.io/hackathon/casper-agentic-buildathon).**
 
@@ -12,41 +12,47 @@ AgentLedger is a Casper-native accountability layer for AI agents performing pai
 
 **[Try it here](https://frontend-beige-zeta-86.vercel.app)** (Casper Testnet)
 
-- **Dashboard** — Real-time view of all agent decisions with on-chain stats and explorer links
-- **Receipts** — Shareable `/receipt/:id` pages with chain verification badge, tamper demo, and QR code
-- **Agent Workbench** — Browse 6 recorded agent decisions with on-chain proof links
+The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). New receipts can be generated from the Agent Workbench. Verification reads Casper RPC transaction arguments directly — no backend trust required.
+
+### What you can do:
+
+- **Agent Workbench** — Run a demo policy agent: watch it evaluate rules step by step (budget checks, vendor approval, risk thresholds), then see the decision recorded on-chain
+- **Receipts** — Shareable `/receipt/:id` pages with chain verification badge, agent policy trace, tamper demo, Casper proof drawer, and QR code
+- **Payment Dispute Demo** — Walk through a realistic vendor dispute: a vendor claims $15K was approved, but the on-chain record proves $10K. Five-phase guided investigation.
 - **Verify** — Select any decision, edit the data, and watch tamper detection in action
+- **Dashboard** — Real-time feed of agent decisions with on-chain stats, agent filter, and explorer links
 - **Audit Export** — Download audit-ready receipt reports in Markdown or JSON
-- **Explorer** — Search and filter decisions by agent, action class, or time
 
 ## How It Works
 
 ```
 1. Agent makes a decision (approve payment, execute trade, flag risk)
-2. Input, output, and a payment/job reference are SHA-256 hashed
+2. Input data, output data, and payment/job reference are SHA-256 hashed
 3. Hashes are submitted to the DecisionRegistry contract on Casper testnet
 4. Anyone can verify: re-hash the original data → compare to on-chain → match = verified, mismatch = tampered
 ```
 
-The **payment/job reference hash** is the key differentiator — it ties each decision receipt to the specific job or payment the agent was fulfilling. This makes AgentLedger audit-ready: auditors can trace from a financial record to the exact on-chain proof of the agent's decision.
+### Agent Policy Trace
+
+Every decision includes a visible **agent policy trace** — the deterministic rules the agent evaluated before deciding. This is not a frontier LLM; it is a demo policy agent that applies fixed rules (budget thresholds, vendor approval lists, concentration limits). The trace data — `policy_version`, `decision_factors`, `risk_score`, `agent_reasoning_summary` — is included in the receipt and rendered on the receipt page.
 
 ### Architecture
 
 ```
 ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────────────┐
 │   React Frontend │────▶│  Vercel Edge Fn   │────▶│  Casper Testnet (Odra)   │
-│   (Vite + TS)    │     │  /api/rpc proxy   │     │  DecisionRegistry Contract│
+│   (Vite + TS)    │     │  /api/rpc proxy   │     │  DecisionRegistry        │
 │                  │     │  (CORS bypass)    │     │                          │
-│  Dashboard       │     └──────────────────┘     │  record_decision()       │
-│  Verify Page     │                               │  get_decision()          │
-│  Workbench       │  Client-side SHA-256 hashing  │  get_total_decisions()   │
+│  Workbench       │     └──────────────────┘     │  record_decision()       │
+│  Dispute Demo    │                               │  get_decision()          │
+│  Verify Page     │  Client-side SHA-256 hashing  │  get_total_decisions()   │
 │  Receipt/Export  │  Static decisions.json         │  get_agent_decision_count│
 └──────────────────┘                               └──────────────────────────┘
 ```
 
 > **Note:** The frontend runs fully static on Vercel. Verification calls Casper RPC
-> directly via a thin Edge Function proxy (CORS). No backend server required.
-> Recording new decisions requires the backend with a signing key.
+> directly via a thin Edge Function proxy (CORS). No backend server required for
+> verification — the on-chain data is the source of truth.
 
 ### On-Chain Contract
 
@@ -69,6 +75,25 @@ The verification flow is the core feature:
 5. Result: **TAMPERED** — the recomputed SHA-256 hash no longer matches the on-chain attestation
 
 This proves the decision record hasn't been altered since it was attested.
+
+### Payment Dispute Case File
+
+A guided walkthrough demonstrating why on-chain receipts matter:
+
+1. **Scenario** — A treasury agent approved a vendor payment. The receipt was recorded on Casper.
+2. **Dispute** — Three weeks later, the vendor claims $15,000 was approved. The on-chain record shows $10,000.
+3. **Evidence** — Side-by-side comparison of the vendor's claim vs. the on-chain record.
+4. **Tamper Test** — Hash the vendor's claimed amount against the chain — mismatch proves the claim is false.
+5. **Verdict** — Dispute resolved in seconds using cryptographic evidence, not trust.
+
+### Casper Proof Drawer
+
+Each receipt page includes a collapsible "Raw Casper Proof" drawer showing:
+- **Named arguments** from the on-chain transaction (input_hash, output_hash, job_payment_ref_hash)
+- **Transaction metadata** (hash, block height, contract package, chain, timestamp)
+- **RPC verification result** (chain_verified, chain_status, hash match/mismatch)
+
+This is sourced directly from Casper RPC — verified without any third-party explorer.
 
 ### Verified On-Chain Transactions
 
@@ -94,14 +119,14 @@ agentledger/
 │   ├── Cargo.toml
 │   └── Odra.toml
 ├── backend/           # Express API server (Node.js)
-│   ├── server.js      # REST API + static file serving
+│   ├── server.js      # REST API + casper-client bridge
 │   ├── seed-decisions.json
 │   └── package.json
 ├── frontend/          # React dashboard (Vite + TypeScript + Tailwind)
 │   ├── src/
-│   │   ├── pages/     # Landing, Dashboard, Explore, Verify, Record, Receipt, Workbench, About
-│   │   ├── components/  # Navbar, Hero, DataGrid, StatCards, etc.
-│   │   ├── lib/       # API client, types, utilities
+│   │   ├── pages/     # Landing, Dashboard, Workbench, Verify, Receipt, Dispute, About
+│   │   ├── components/
+│   │   ├── lib/       # API client, Casper verification, types
 │   │   └── theme.config.ts
 │   ├── package.json
 │   └── vite.config.ts
@@ -119,7 +144,24 @@ agentledger/
 - [Odra CLI](https://odra.dev/docs/) (for contract deployment)
 - `casper-client` CLI (for testnet interaction)
 
-### Run the Backend
+### Run the Frontend (Development)
+
+```bash
+cd frontend
+npm install
+npm run dev
+# Dev server on http://localhost:5173
+```
+
+### Build for Production
+
+```bash
+cd frontend
+npm run build
+# Output in frontend/dist/ — deployable to Vercel or any static host
+```
+
+### Run the Backend (optional — for recording new decisions)
 
 ```bash
 cd backend
@@ -128,50 +170,12 @@ node server.js
 # API runs on http://localhost:3001
 ```
 
-### Run the Frontend (Development)
-
-```bash
-cd frontend
-npm install
-npm run dev
-# Dev server on http://localhost:5173, proxies /api to backend
-```
-
-### Build for Production
-
-```bash
-cd frontend
-npm run build
-# Output in frontend/dist/ — served by the backend automatically
-```
-
 ### Compile the Contract
 
 ```bash
 cd contract
 cargo odra build
 # Outputs WASM to contract/wasm/
-```
-
-### Deploy to Casper Testnet
-
-```bash
-# Get testnet CSPR from faucet: https://testnet.cspr.live/tools/faucet
-casper-client put-transaction package \
-  --node-address https://node.testnet.casper.network/rpc \
-  --secret-key ./keys/secret_key.pem \
-  --chain-name casper-test \
-  --contract-package-hash "hash-YOUR_PACKAGE_HASH" \
-  --session-entry-point "record_decision" \
-  --session-arg 'agent_id:string='"'"'my-agent'"'"'' \
-  --session-arg 'action_class:string='"'"'trade'"'"'' \
-  --session-arg 'input_hash:string='"'"'abc123'"'"'' \
-  --session-arg 'output_hash:string='"'"'def456'"'"'' \
-  --session-arg 'job_payment_ref_hash:string='"'"'job-ref'"'"'' \
-  --payment-amount 3000000000 \
-  --gas-price-tolerance 10 \
-  --pricing-mode classic \
-  --standard-payment true
 ```
 
 ## Quick Integration (Node.js)
@@ -196,137 +200,22 @@ console.log(`Receipt on-chain: ${explorerUrl}`);
 
 See [`examples/node-agent/record.mjs`](examples/node-agent/record.mjs) for a complete runnable example.
 
-## API Reference
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | Health check + decision count |
-| `/api/decisions` | GET | List all decisions (optional `?agent=` filter) |
-| `/api/decisions/:id` | GET | Get single decision by ID |
-| `/api/decisions/:id/audit-report` | GET | Audit-ready receipt report (`?format=markdown\|json`) |
-| `/api/stats` | GET | Summary statistics (agents, counts, latest block) |
-| `/api/verify` | POST | Verify decision integrity against on-chain hashes |
-| `/api/record` | POST | Record a new decision on-chain via `casper-client` |
-
-### Record + Verify Example (end-to-end reproducible)
-
-**Step 1: Record a new decision on-chain**
-
-```bash
-curl -X POST http://localhost:3001/api/record \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agentId": "my-treasury-agent",
-    "actionClass": "vendor_payment_approval",
-    "inputData": {"invoice_id":"INV-2026-0001","vendor":"Acme Corp","amount":5000,"currency":"USDT","budget_remaining":20000},
-    "outputData": {"decision":"APPROVED","reason":"Within budget threshold","approval_confidence":0.91},
-    "jobPaymentRefHash": "x402-job-0xabc123"
-  }'
-```
-
-Response:
-```json
-{
-  "success": true,
-  "decisionId": 1,
-  "inputHash": "a3f2...",
-  "outputHash": "b4e1...",
-  "txHash": "3c7d...",
-  "explorerUrl": "https://testnet.cspr.live/transaction/3c7d..."
-}
-```
-
-**Step 2: Verify the recorded decision (exact original data)**
-
-```bash
-curl -X POST http://localhost:3001/api/verify \
-  -H "Content-Type: application/json" \
-  -d '{
-    "decisionId": 1,
-    "inputData": {"invoice_id":"INV-2026-0001","vendor":"Acme Corp","amount":5000,"currency":"USDT","budget_remaining":20000},
-    "outputData": {"decision":"APPROVED","reason":"Within budget threshold","approval_confidence":0.91}
-  }'
-```
-
-Response (`verified: true`, transaction confirmed on Casper Testnet):
-```json
-{
-  "verified": true,
-  "chainVerified": true,
-  "chainStatus": "finalized",
-  "onChain": { "inputHash": "a3f2...", "txHash": "3c7d...", "blockHeight": 8234100 },
-  "computed": { "inputHash": "a3f2..." },
-  "details": { "inputMatch": true, "outputMatch": true }
-}
-```
-
-**Step 3: Verify with tampered data** (change `amount` from 5000 to 9999):
-
-```bash
-curl -X POST http://localhost:3001/api/verify \
-  -H "Content-Type: application/json" \
-  -d '{
-    "decisionId": 1,
-    "inputData": {"invoice_id":"INV-2026-0001","vendor":"Acme Corp","amount":9999,"currency":"USDT","budget_remaining":20000},
-    "outputData": {"decision":"APPROVED","reason":"Within budget threshold","approval_confidence":0.91}
-  }'
-```
-
-Response (`verified: false` — tamper detected):
-```json
-{
-  "verified": false,
-  "chainVerified": true,
-  "chainStatus": "finalized",
-  "details": { "inputMatch": false, "outputMatch": true }
-}
-```
-
-The hash mismatch proves the input was altered after being attested on-chain.
-
-### Self-Check (integrity verification)
-
-```bash
-cd backend
-node self-check.js
-```
-
-Runs 3 automated checks:
-1. **Hash integrity** — independently computes SHA-256 of stored data and compares to stored hashes
-2. **API verification** — verifies original data via `/api/verify` (must return `verified: true`)
-3. **Tamper detection** — modifies data and verifies detection (must return `verified: false`)
-
-### Batch Re-Record (demo setup)
-
-```bash
-cd backend
-node rerecord-decisions.js
-```
-
-Records 6 demo decisions on-chain with real SHA-256 hashes. Requires ~18 CSPR in the signing key.
-
 ## Why Casper
 
-AgentLedger is Casper-native by design, not a chain-agnostic tool ported to Casper:
+AgentLedger is Casper-native by design:
 
-- **Institutional positioning:** Casper targets enterprise and regulated industries. Agent accountability fits this thesis — financial institutions deploying AI agents need audit trails on infrastructure they can trust.
-- **Odra framework (Rust):** The DecisionRegistry is a native Odra smart contract, not a Solidity port. Rust's safety guarantees and Odra's developer ergonomics make contract development first-class.
-- **Finality guarantees:** Casper's consensus finality means a recorded receipt is final. No reorg risk — clear confirmation and finality semantics, critical for audit-grade records.
-- **Gas-efficient hash storage:** Casper's named-key storage model stores hashes efficiently. No raw prompts or output data on-chain — hashes only, keeping costs predictable.
+- **Institutional positioning:** Casper targets enterprise and regulated industries. Agents operating in finance and operations need audit-ready evidence on infrastructure that institutions trust.
+- **Odra framework (Rust):** The DecisionRegistry is a native Odra smart contract. Rust's safety guarantees and Odra's developer ergonomics make contract development first-class.
+- **Finality guarantees:** Casper's consensus finality means a recorded receipt is final. No reorg risk — critical for audit-grade records.
+- **Gas-efficient hash storage:** Casper's named-key storage model stores hashes efficiently at ~3 CSPR per receipt. Hash-only privacy keeps costs predictable.
 
-## Differentiation
+## What This Is (and Isn't)
 
-- **vs EAS (Ethereum Attestation Service):** EAS is a generic attestation substrate. AgentLedger is a purpose-built product for agent work receipts with tamper-detection UI and audit-ready exports, native to Casper's institutional stack.
-- **vs zkML (EZKL, zkPyTorch):** zkML proves computation/inference correctness. AgentLedger proves *operational accountability* — what an agent claimed to do, when, and under which job/payment context.
-- **vs generic logging:** Centralized logs can be edited. AgentLedger receipts are immutable on-chain and independently verifiable by anyone with the original data.
+**What it is:** A working demo that records agent decision receipts on Casper testnet. The live demo includes 6 seed receipts; new receipts can be generated from the Agent Workbench. Verification reads Casper RPC transaction args directly.
 
-## Tech Stack
+**What it demonstrates:** That on-chain hash attestation provides tamper-evident proof of agent decisions, making disputes resolvable in seconds instead of weeks.
 
-- **Blockchain:** [Casper Network](https://casper.network) (Testnet)
-- **Smart Contract:** [Odra Framework](https://odra.dev) (Rust)
-- **Backend:** Express.js (Node.js)
-- **Frontend:** React 19 + Vite + TypeScript + Tailwind CSS
-- **Hashing:** SHA-256 (canonical JSON serialization)
+**What it is not:** A production-ready compliance system. The agents shown are deterministic demo policy agents with fixed rules, not frontier AI models. The system runs on testnet.
 
 ## License
 

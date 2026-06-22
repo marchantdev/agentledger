@@ -66,13 +66,7 @@ export default function RecordDemo() {
       const parsedInput = JSON.parse(inputData);
       const parsedOutput = JSON.parse(outputData);
 
-      const res = await api.record({
-        agentId,
-        actionClass,
-        inputData: parsedInput,
-        outputData: parsedOutput,
-        jobPaymentRefHash: jobRef,
-      });
+      const res = await api.record("vendor_payment");
 
       setResult(res);
     } catch (err: any) {

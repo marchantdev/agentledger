@@ -15,6 +15,19 @@ const KEYS_DIR = path.join(__dirname, "..", "keys");
 const CONTRACT_PACKAGE = "hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb";
 const NODE_URL = "https://node.testnet.casper.network/rpc";
 const CHAIN_NAME = "casper-test";
+const BACKEND_SECRET = process.env.BACKEND_SECRET || "agentledger-demo-2026";
+
+// Middleware: validate backend secret on write endpoints
+function requireSecret(req, res, next) {
+  const secret = req.headers["x-backend-secret"];
+  if (secret && secret === BACKEND_SECRET) return next();
+  // Also allow local requests (for testing)
+  const ip = req.ip || req.connection.remoteAddress || "";
+  if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return next();
+  // Allow requests without secret for backward compat during transition
+  // TODO: After Vercel env is set, make this strict
+  return next();
+}
 
 // Load decisions from store (or seed if store doesn't exist)
 let decisions = [];

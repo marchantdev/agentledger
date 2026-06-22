@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Github, BookOpen, Shield, ExternalLink, ShieldCheck } from "lucide-react";
+import { ArrowRight, Github, BookOpen, Shield, ExternalLink, ShieldCheck, Scale } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import { theme, densityMap } from "../theme.config";
@@ -8,19 +8,19 @@ import { api } from "../lib/api";
 
 const valueProps = [
   {
-    title: "Receipts Bound to Payment References",
+    title: "Receipts Bound to Payments",
     description:
-      "Each decision receipt includes a payment/job reference hash — linking the agent's action to the work it was paid for. One receipt ties decision, proof, and payment together.",
+      "Every decision receipt includes a job/payment reference hash — linking the agent's action to the work it was paid for. One receipt binds decision, proof, and payment into a single verifiable artifact.",
   },
   {
-    title: "Tamper Detection Built In",
+    title: "Instant Tamper Detection",
     description:
-      "Verify any decision against its on-chain attestation. If a single character changes, the hash breaks. Instant proof of integrity or tampering.",
+      "Re-hash any decision's data and compare against the on-chain record. If a single byte was altered — the amount, the reasoning, or the timestamp — the hash won't match. Disputes resolved in seconds.",
   },
   {
-    title: "Built for Casper's Institutional Stack",
+    title: "Casper-Native Audit Trail",
     description:
-      "Casper's enterprise-grade finality and Odra smart contracts make it the natural ledger for regulated agent work. Export audit-ready receipt reports for compliance records.",
+      "Built on Casper 2.0 with Odra smart contracts. Enterprise-grade finality for regulated agent work. Export audit-ready reports for compliance, insurance, or legal review.",
   },
 ];
 
@@ -47,9 +47,9 @@ export default function Landing() {
           badge="Casper Agentic Buildathon 2026"
           title="If an agent gets paid,"
           highlight="it leaves a receipt."
-          subtitle="The accountability layer for autonomous AI agents on Casper. Record decisions, prove integrity, detect tampering — Casper-native receipts built for enterprise audit trails."
-          primaryCta={{ label: "Try Verification", to: "/verify" }}
-          secondaryCta={{ label: "Open Dashboard", to: "/dashboard" }}
+          subtitle="When AI agents approve payments, execute trades, and manage capital autonomously — who proves what happened? AgentLedger records every decision on Casper's blockchain. Verifiable receipts. Instant tamper detection. Enterprise-grade audit trails."
+          primaryCta={{ label: "See a Dispute Resolved", to: "/dispute" }}
+          secondaryCta={{ label: "Try Verification", to: "/verify" }}
         />
       )}
 

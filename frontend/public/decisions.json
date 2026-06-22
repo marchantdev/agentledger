@@ -21,6 +21,18 @@
       "reason": "Within budget threshold (22%)",
       "payment_amount": 10000,
       "approval_confidence": 0.94
+    },
+    "trace": {
+      "policy_version": "treasury-v2.1",
+      "decision_factors": [
+        "invoice_amount <= 25% of remaining budget",
+        "vendor on approved list (tier 1)",
+        "no duplicate invoice in last 30 days",
+        "amount below single-approval limit ($15,000)"
+      ],
+      "risk_score": 0.18,
+      "agent_reasoning_summary": "Invoice $10,000 from CloudServ Inc consumes 22% of remaining $45,000 budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.",
+      "agent_type": "deterministic_policy"
     }
   },
   {
@@ -44,6 +56,18 @@
       "decision": "REJECTED",
       "reason": "Exceeds single-vendor limit (84% of remaining budget)",
       "risk_score": 0.91
+    },
+    "trace": {
+      "policy_version": "treasury-v2.1",
+      "decision_factors": [
+        "invoice_amount > 50% of remaining budget (FAIL: 84%)",
+        "exceeds single-vendor concentration limit",
+        "vendor tier-2 (requires dual approval above $20,000)",
+        "flagged for manual review"
+      ],
+      "risk_score": 0.91,
+      "agent_reasoning_summary": "Invoice $38,000 from DataSync LLC would consume 84% of remaining budget. Exceeds single-vendor concentration policy (max 50%). Tier-2 vendor requires dual approval above $20K. Rejected — escalate to finance lead.",
+      "agent_type": "deterministic_policy"
     }
   },
   {
@@ -67,6 +91,18 @@
       "action": "reduce_exposure",
       "recommended_reduction": 0.4,
       "reason": "24h volatility 74% above threshold"
+    },
+    "trace": {
+      "policy_version": "risk-monitor-v1.3",
+      "decision_factors": [
+        "24h realized volatility 8.7% exceeds 5% threshold",
+        "position size $25,000 above minimum alert threshold ($10,000)",
+        "volatility breach magnitude: 74% over limit",
+        "no offsetting hedge detected in portfolio"
+      ],
+      "risk_score": 0.74,
+      "agent_reasoning_summary": "CSPR/USDT 24h volatility at 8.7% — 74% above the 5% policy threshold. Position size $25K with no hedge. Recommending 40% exposure reduction to bring risk within policy band.",
+      "agent_type": "deterministic_policy"
     }
   },
   {
@@ -91,6 +127,18 @@
       "fill_price": 0.0418,
       "filled_amount": 5000,
       "fee": 5
+    },
+    "trace": {
+      "policy_version": "trading-v3.0",
+      "decision_factors": [
+        "signal: bullish breakout (MACD crossover + volume spike)",
+        "price within limit ($0.042 limit, $0.0418 fill)",
+        "slippage 0.48% within 0.5% tolerance",
+        "position sizing: 5% of portfolio (within 10% max)"
+      ],
+      "risk_score": 0.32,
+      "agent_reasoning_summary": "Bullish breakout signal on CSPR/USDT. Buy $5,000 at limit $0.042 — filled at $0.0418 (0.48% slippage, within tolerance). Position size 5% of portfolio, below 10% concentration limit.",
+      "agent_type": "deterministic_policy"
     }
   },
   {
@@ -115,6 +163,18 @@
       "reason": "Within policy limits, vendor verified",
       "payment_amount": 7500,
       "approval_confidence": 0.97
+    },
+    "trace": {
+      "policy_version": "compliance-v1.8",
+      "decision_factors": [
+        "vendor on approved list (verified KYC/AML)",
+        "contract reference SNC-2026-Q2 valid and active",
+        "amount $7,500 within contract ceiling ($50,000)",
+        "no sanctions flags on vendor entity"
+      ],
+      "risk_score": 0.08,
+      "agent_reasoning_summary": "SecureNet Corp is a verified vendor with active contract SNC-2026-Q2. Invoice $7,500 well within contract ceiling. No compliance flags. Approved with high confidence.",
+      "agent_type": "deterministic_policy"
     }
   },
   {
@@ -137,6 +197,19 @@
       "cspr_sold": 5000,
       "usdt_bought": 5000,
       "new_allocation": { "CSPR": 0.4, "USDT": 0.4, "ETH": 0.2 }
+    },
+    "trace": {
+      "policy_version": "trading-v3.0",
+      "decision_factors": [
+        "CSPR overweight by 5% (45% vs 40% target)",
+        "USDT underweight by 5% (35% vs 40% target)",
+        "ETH at target (20% = 20%)",
+        "rebalance band exceeded (5% > 3% threshold)",
+        "estimated slippage within acceptable range"
+      ],
+      "risk_score": 0.22,
+      "agent_reasoning_summary": "Portfolio drift detected: CSPR 5% overweight, USDT 5% underweight. Exceeds 3% rebalance band. Executing 2 trades to restore target allocation. ETH position unchanged.",
+      "agent_type": "deterministic_policy"
     }
   }
 ]
