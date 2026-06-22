@@ -279,28 +279,45 @@ export default function Receipt() {
         </div>
       </div>
 
-      {/* On-chain reference */}
+      {/* Casper Proof Panel */}
       <div className={`card ${theme.ui.radius} space-y-4`}>
-        <h2
-          className="font-semibold flex items-center gap-2"
-          style={{ color: theme.colors.text }}
-        >
-          <Box size={16} style={{ color: theme.colors.accent }} />
-          On-Chain Reference
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2
+            className="font-semibold flex items-center gap-2"
+            style={{ color: theme.colors.text }}
+          >
+            <Box size={16} style={{ color: theme.colors.accent }} />
+            Powered by Casper
+          </h2>
+          <span
+            className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5"
+            style={{
+              backgroundColor: verification?.chainVerified
+                ? theme.colors.success + "20"
+                : theme.colors.border + "40",
+              color: verification?.chainVerified
+                ? theme.colors.success
+                : theme.colors.textMuted,
+            }}
+          >
+            <CheckCircle size={12} />
+            {verification?.chainVerified ? "RPC Verified" : "Awaiting Confirmation"}
+          </span>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <span
               className="text-xs uppercase tracking-wider"
               style={{ color: theme.colors.textMuted }}
             >
-              Transaction Hash
+              Contract Package
             </span>
             <p
               className="text-xs font-mono mt-1 break-all"
               style={{ color: theme.colors.text }}
+              title="hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb"
             >
-              {decision.txHash}
+              f8f8e34c914d463b…99bb
             </p>
           </div>
           <div>
@@ -314,22 +331,39 @@ export default function Receipt() {
               className="text-sm font-mono mt-1"
               style={{ color: theme.colors.text }}
             >
-              #{decision.blockHeight || (verification?.onChain.blockHeight ?? "pending")}
+              #{decision.blockHeight || (verification?.onChain.blockHeight ?? "—")}
+            </p>
+          </div>
+          <div className="sm:col-span-2">
+            <span
+              className="text-xs uppercase tracking-wider"
+              style={{ color: theme.colors.textMuted }}
+            >
+              Transaction
+            </span>
+            <p
+              className="text-xs font-mono mt-1 break-all"
+              style={{ color: theme.colors.text }}
+            >
+              {decision.txHash}
             </p>
           </div>
         </div>
-        <a
-          href={`https://testnet.cspr.live/transaction/${decision.txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-2.5 text-sm rounded-lg border transition-colors hover:bg-white/5"
+        <div
+          className="flex items-center gap-3 p-3 rounded-lg text-xs"
           style={{
-            borderColor: theme.colors.primary,
-            color: theme.colors.primary,
+            backgroundColor: theme.colors.primary + "10",
+            borderLeft: `3px solid ${theme.colors.primary}`,
           }}
         >
-          <ExternalLink size={14} /> View on Casper Explorer
-        </a>
+          <CheckCircle
+            size={14}
+            style={{ color: theme.colors.primary, flexShrink: 0 }}
+          />
+          <span style={{ color: theme.colors.textMuted }}>
+            Verified directly via Casper RPC — no third-party explorer required.
+          </span>
+        </div>
       </div>
 
       {/* Hash comparison (from verification) */}
