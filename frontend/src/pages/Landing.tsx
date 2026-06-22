@@ -18,9 +18,9 @@ const valueProps = [
       "Verify any decision against its on-chain attestation. If a single character changes, the hash breaks. Instant proof of integrity or tampering.",
   },
   {
-    title: "Audit-Ready Trail",
+    title: "Built for Casper's Institutional Stack",
     description:
-      "Every receipt is on-chain with input/output hashes, a payment/job reference, and a Casper transaction hash. Click through to the explorer for cryptographic proof.",
+      "Casper's enterprise-grade finality and Odra smart contracts make it the natural ledger for regulated agent work. Export audit-ready receipt reports for compliance records.",
   },
 ];
 
@@ -47,7 +47,7 @@ export default function Landing() {
           badge="Casper Agentic Buildathon 2026"
           title="If an agent gets paid,"
           highlight="it leaves a receipt."
-          subtitle="AgentLedger is the accountability layer for autonomous AI agents. Record decisions on-chain, prove integrity, detect tampering — all on Casper's immutable ledger."
+          subtitle="The accountability layer for autonomous AI agents on Casper. Record decisions, prove integrity, detect tampering — Casper-native receipts built for enterprise audit trails."
           primaryCta={{ label: "Try Verification", to: "/verify" }}
           secondaryCta={{ label: "Open Dashboard", to: "/dashboard" }}
         />
@@ -126,7 +126,7 @@ export default function Landing() {
             style={{ borderColor: theme.colors.border, backgroundColor: theme.colors.surface }}
           >
             <h2 className="text-xl font-semibold mb-6 text-center" style={{ color: theme.colors.text }}>
-              Built on Casper. Verified on-chain.
+              Casper-Native. Enterprise-Ready. Verified On-Chain.
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[

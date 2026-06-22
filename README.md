@@ -4,7 +4,7 @@
 
 > *If an agent gets paid, it leaves a receipt.*
 
-AgentLedger is an on-chain accountability layer for AI agents performing paid work. Every agent decision — approvals, trades, alerts, rejections — is hashed and recorded as an immutable receipt on the Casper blockchain. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Anyone can verify that a decision hasn't been tampered with by recomputing hashes and comparing against the on-chain attestation.
+AgentLedger is a Casper-native accountability layer for AI agents performing paid work. Every agent decision — approvals, trades, alerts, rejections — is hashed and recorded as an immutable receipt on the Casper blockchain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Anyone can verify that a decision hasn't been tampered with by recomputing hashes and comparing against the on-chain attestation. Casper's enterprise-grade finality and institutional adoption roadmap make it the natural ledger for regulated agent work — agents operating in finance, compliance, and operations need audit trails that institutions can trust.
 
 **Built for the [Casper Agentic Buildathon 2026](https://dorahacks.io/hackathon/casper-agentic-buildathon).**
 
@@ -299,11 +299,20 @@ node rerecord-decisions.js
 
 Records 6 demo decisions on-chain with real SHA-256 hashes. Requires ~18 CSPR in the signing key.
 
+## Why Casper
+
+AgentLedger is Casper-native by design, not a chain-agnostic tool ported to Casper:
+
+- **Institutional positioning:** Casper targets enterprise and regulated industries. Agent accountability fits this thesis — financial institutions deploying AI agents need audit trails on infrastructure they can trust.
+- **Odra framework (Rust):** The DecisionRegistry is a native Odra smart contract, not a Solidity port. Rust's safety guarantees and Odra's developer ergonomics make contract development first-class.
+- **Finality guarantees:** Casper's consensus finality means a recorded receipt is final. No reorg risk, no confirmation waiting — critical for audit-grade records.
+- **Gas-efficient hash storage:** Casper's named-key storage model stores hashes efficiently. No raw prompts or output data on-chain — hashes only, keeping costs predictable.
+
 ## Differentiation
 
-- **vs EAS (Ethereum Attestation Service):** EAS is a generic attestation substrate. AgentLedger is a purpose-built product for agent work receipts with tamper-detection UI, tied to Casper/x402 payment flows.
+- **vs EAS (Ethereum Attestation Service):** EAS is a generic attestation substrate. AgentLedger is a purpose-built product for agent work receipts with tamper-detection UI and audit-ready exports, native to Casper's institutional stack.
 - **vs zkML (EZKL, zkPyTorch):** zkML proves computation/inference correctness. AgentLedger proves *operational accountability* — what an agent claimed to do, when, and under which job/payment context.
-- **vs research papers:** AgentLedger is a shippable demo with live on-chain transactions, not research infrastructure.
+- **vs generic logging:** Centralized logs can be edited. AgentLedger receipts are immutable on-chain and independently verifiable by anyone with the original data.
 
 ## Tech Stack
 
