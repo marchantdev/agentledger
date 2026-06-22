@@ -20,7 +20,7 @@ const valueProps = [
   {
     title: "Real-Time Audit Trail",
     description:
-      "Query any agent's complete decision history on-chain. Click through to Casper explorer for cryptographic proof. Third-party verifiable.",
+      "Browse agent decision receipts, each linked to its on-chain attestation. Click through to Casper explorer for cryptographic proof.",
   },
 ];
 
