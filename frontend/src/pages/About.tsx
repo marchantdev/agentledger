@@ -89,7 +89,7 @@ const verify = await fetch("/api/verify", {
             "TypeScript SDK",
             "React + Vite",
             "Tailwind CSS",
-            "CSPR.cloud API",
+            "Casper RPC",
           ].map((tech) => (
             <div
               key={tech}

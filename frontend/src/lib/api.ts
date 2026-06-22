@@ -1,14 +1,22 @@
+/**
+ * AgentLedger API — fully static (no backend required).
+ * Decisions loaded from /decisions.json (bundled at build time).
+ * Verification runs client-side via Casper RPC proxy (/api/rpc).
+ */
 import type { DecisionRecord, AgentSummary } from "./types";
+import { verifyDecision, generateAuditReport, auditReportToMarkdown, type VerifyResult } from "./casper-verify";
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+// Re-export VerifyResult as VerifyResponse for backwards compat
+export type VerifyResponse = VerifyResult;
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    ...options,
-  });
-  if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-  return res.json();
+let _decisionsCache: DecisionRecord[] | null = null;
+
+async function loadDecisions(): Promise<DecisionRecord[]> {
+  if (_decisionsCache) return _decisionsCache;
+  const res = await fetch("/decisions.json");
+  if (!res.ok) throw new Error("Failed to load decisions data");
+  _decisionsCache = await res.json();
+  return _decisionsCache!;
 }
 
 export interface DecisionsResponse {
@@ -22,31 +30,6 @@ export interface StatsResponse {
   latestBlock: number;
   confirmedOnChain: number;
   agents: AgentSummary[];
-}
-
-export interface VerifyResponse {
-  verified: boolean;
-  chainVerified: boolean;
-  chainStatus: "finalized" | "not_found" | "pending" | "rpc_error" | "parse_failed" | "unknown";
-  decisionId: number;
-  onChain: {
-    inputHash: string | null;
-    outputHash: string | null;
-    txHash: string;
-    blockHeight: number;
-    agentId: string;
-    actionClass: string;
-    explorerUrl: string;
-  };
-  computed: {
-    inputHash: string;
-    outputHash: string;
-  };
-  details: {
-    inputMatch: boolean;
-    outputMatch: boolean;
-    rpcParseError?: string;
-  };
 }
 
 export interface RecordResponse {
@@ -70,46 +53,110 @@ export interface FinalityResponse {
 }
 
 export const api = {
-  getDecisions: (agent?: string) => {
-    const params = agent && agent !== "all" ? `?agent=${agent}` : "";
-    return apiFetch<DecisionsResponse>(`/api/decisions${params}`);
+  getDecisions: async (agent?: string): Promise<DecisionsResponse> => {
+    const all = await loadDecisions();
+    let result = [...all].reverse(); // newest first
+    if (agent && agent !== "all") {
+      result = result.filter((d) => d.agentId === agent);
+    }
+    return { decisions: result, total: result.length };
   },
-  getDecision: (id: number) => apiFetch<DecisionRecord>(`/api/decisions/${id}`),
-  getStats: () => apiFetch<StatsResponse>("/api/stats"),
-  verify: (decisionId: number, inputData: any, outputData: any) =>
-    apiFetch<VerifyResponse>("/api/verify", {
-      method: "POST",
-      body: JSON.stringify({ decisionId, inputData, outputData }),
-    }),
-  record: (data: {
-    agentId: string;
-    actionClass: string;
-    inputData: any;
-    outputData: any;
-    jobPaymentRefHash?: string;
-  }) =>
-    apiFetch<RecordResponse>("/api/record", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  health: () => apiFetch<{ status: string; decisions: number }>("/api/health"),
-  workbenchRecord: (scenario: string, sessionId: string) =>
-    apiFetch<RecordResponse>("/api/workbench/record", {
-      method: "POST",
-      headers: { "X-Session-Id": sessionId },
-      body: JSON.stringify({ scenario }),
-    }),
-  workbenchLimits: (sessionId: string) =>
-    apiFetch<WorkbenchLimitsResponse>("/api/workbench/limits", {
-      headers: { "X-Session-Id": sessionId },
-    }),
-  finality: (id: number) =>
-    apiFetch<FinalityResponse>(`/api/decisions/${id}/finality`),
+
+  getDecision: async (id: number): Promise<DecisionRecord> => {
+    const all = await loadDecisions();
+    const decision = all.find((d) => d.decisionId === id);
+    if (!decision) throw new Error("Decision not found");
+    return decision;
+  },
+
+  getStats: async (): Promise<StatsResponse> => {
+    const all = await loadDecisions();
+    const agentSet = new Set(all.map((d) => d.agentId));
+    const latestBlock = Math.max(...all.map((d) => d.blockHeight || 0));
+    const confirmedOnChain = all.filter((d) => d.blockHeight > 0).length;
+    return {
+      totalDecisions: all.length,
+      totalAgents: agentSet.size,
+      latestBlock,
+      confirmedOnChain,
+      agents: [...agentSet].map((agentId) => {
+        const agentDecs = all.filter((d) => d.agentId === agentId);
+        const latest = agentDecs[agentDecs.length - 1];
+        return {
+          agentId,
+          totalDecisions: agentDecs.length,
+          lastAction: latest?.actionClass || "none",
+          lastTimestamp: latest?.timestamp || "",
+        };
+      }),
+    };
+  },
+
+  verify: async (decisionId: number, inputData: any, outputData: any): Promise<VerifyResponse> => {
+    const all = await loadDecisions();
+    const decision = all.find((d) => d.decisionId === decisionId);
+    if (!decision) throw new Error("Decision not found");
+    return verifyDecision(decision, inputData, outputData);
+  },
+
+  // Record is not available in static mode
+  record: async (_data?: any): Promise<RecordResponse> => {
+    throw new Error("Recording is not available in static demo mode. The 6 existing decisions were recorded on-chain during the live demo.");
+  },
+
+  health: async () => {
+    const all = await loadDecisions();
+    return { status: "ok", decisions: all.length };
+  },
+
+  // Workbench recording not available in static mode
+  workbenchRecord: async (): Promise<RecordResponse> => {
+    throw new Error("Live recording is not available in static demo mode.");
+  },
+
+  workbenchLimits: async (): Promise<WorkbenchLimitsResponse> => {
+    return {
+      rateLimit: { max: 3, remaining: 0, windowMs: 60000 },
+      session: { recordings: 5, cap: 5 },
+    };
+  },
+
+  finality: async (id: number): Promise<FinalityResponse> => {
+    const all = await loadDecisions();
+    const decision = all.find((d) => d.decisionId === id);
+    if (!decision) throw new Error("Decision not found");
+    return {
+      status: decision.blockHeight > 0 ? "confirmed" : "pending",
+      blockHeight: decision.blockHeight,
+      decisionId: id,
+    };
+  },
+
   auditReport: async (id: number, format: "markdown" | "json" = "markdown") => {
-    const res = await fetch(`${API_BASE}/api/decisions/${id}/audit-report?format=${format}`);
-    if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-    const blob = await res.blob();
-    const ext = format === "json" ? "json" : "md";
+    const all = await loadDecisions();
+    const decision = all.find((d) => d.decisionId === id);
+    if (!decision) throw new Error("Decision not found");
+
+    // Run verification first
+    const verification = await verifyDecision(decision, decision.inputData || {}, decision.outputData || {});
+    const report = generateAuditReport(decision, verification);
+
+    let content: string;
+    let mimeType: string;
+    let ext: string;
+
+    if (format === "json") {
+      content = JSON.stringify(report, null, 2);
+      mimeType = "application/json";
+      ext = "json";
+    } else {
+      content = auditReportToMarkdown(report);
+      mimeType = "text/markdown";
+      ext = "md";
+    }
+
+    // Trigger download
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

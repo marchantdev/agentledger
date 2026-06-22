@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Zap,
@@ -6,134 +6,72 @@ import {
   Loader2,
   FileText,
   Shield,
-  Clock,
   AlertTriangle,
-  ArrowRight,
   ExternalLink,
   Hash,
   Briefcase,
   TrendingUp,
   AlertOctagon,
+  Lock,
 } from "lucide-react";
 import { theme } from "../theme.config";
 import { api } from "../lib/api";
-import type { RecordResponse } from "../lib/api";
+import type { DecisionRecord } from "../lib/types";
 
-type WorkflowStep = "pick" | "recording" | "pending" | "confirmed";
-
-const SCENARIOS = [
-  {
-    id: "vendor_payment",
+const SCENARIO_META: Record<string, { label: string; icon: any; color: string; description: string }> = {
+  vendor_payment_approval: {
     label: "Vendor Payment",
     icon: Briefcase,
-    agent: "treasury-agent-01",
-    description: "Treasury agent approves a $8,500 invoice payment to Acme Cloud",
-    detail: "Checks budget threshold, generates approval confidence, binds to payment ref hash",
     color: "#34d399",
+    description: "Treasury agent approves a payment based on budget threshold analysis",
   },
-  {
-    id: "defi_swap",
-    label: "DeFi Swap",
-    icon: TrendingUp,
-    agent: "trading-agent-alpha",
-    description: "Trading agent executes a 1,000 CSPR/USDT swap on bullish signal",
-    detail: "Evaluates market signal, calculates slippage, records execution receipt",
-    color: "#60a5fa",
+  payment_rejection: {
+    label: "Payment Rejection",
+    icon: AlertTriangle,
+    color: "#fb923c",
+    description: "Treasury agent rejects a payment exceeding single-vendor budget limit",
   },
-  {
-    id: "risk_alert",
+  risk_alert: {
     label: "Risk Alert",
     icon: AlertOctagon,
-    agent: "risk-monitor-eu",
-    description: "Risk monitor flags a 15% portfolio drawdown exceeding threshold",
-    detail: "Triggers exposure reduction, notifies risk team, records severity assessment",
     color: "#f87171",
+    description: "Risk monitor flags portfolio drawdown exceeding volatility threshold",
   },
-];
-
-function generateSessionId(): string {
-  return "wb-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
+  swap: {
+    label: "DeFi Swap",
+    icon: TrendingUp,
+    color: "#60a5fa",
+    description: "Trading agent executes a token swap based on market signal analysis",
+  },
+  rebalance: {
+    label: "Portfolio Rebalance",
+    icon: Zap,
+    color: "#a78bfa",
+    description: "Trading agent rebalances portfolio allocation to match target weights",
+  },
+};
 
 export default function Workbench() {
-  const [step, setStep] = useState<WorkflowStep>("pick");
-  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
-  const [result, setResult] = useState<RecordResponse | null>(null);
-  const [blockHeight, setBlockHeight] = useState<number>(0);
-  const [error, setError] = useState<string | null>(null);
-  const [sessionId] = useState(() => generateSessionId());
-  const [sessionRecordings, setSessionRecordings] = useState(0);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [decisions, setDecisions] = useState<DecisionRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Check session limits on mount
   useEffect(() => {
-    api.workbenchLimits(sessionId)
-      .then((l) => setSessionRecordings(l.session.recordings))
-      .catch(() => {});
-  }, [sessionId]);
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
+    api.getDecisions()
+      .then((res) => setDecisions(res.decisions))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleRecord = useCallback(async (scenarioId: string) => {
-    setSelectedScenario(scenarioId);
-    setStep("recording");
-    setError(null);
-    setResult(null);
-    setBlockHeight(0);
-
-    try {
-      const res = await api.workbenchRecord(scenarioId, sessionId);
-      setResult(res);
-      setSessionRecordings((p) => p + 1);
-      setStep("pending");
-
-      // Start polling for finality
-      let attempts = 0;
-      pollRef.current = setInterval(async () => {
-        attempts++;
-        try {
-          const fin = await api.finality(res.decisionId);
-          if (fin.status === "confirmed") {
-            setBlockHeight(fin.blockHeight);
-            setStep("confirmed");
-            if (pollRef.current) clearInterval(pollRef.current);
-          }
-        } catch {
-          // ignore polling errors
-        }
-        // Stop after 2 minutes (24 * 5s)
-        if (attempts >= 24) {
-          if (pollRef.current) clearInterval(pollRef.current);
-          // Show confirmed anyway (Casper testnet can be slow)
-          setStep("confirmed");
-        }
-      }, 5000);
-    } catch (err: any) {
-      setError(err.message || "Failed to record");
-      setStep("pick");
-    }
-  }, [sessionId]);
-
-  const reset = () => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    setStep("pick");
-    setSelectedScenario(null);
-    setResult(null);
-    setBlockHeight(0);
-    setError(null);
-  };
-
-  const scenario = SCENARIOS.find((s) => s.id === selectedScenario);
-  const sessionRemaining = 5 - sessionRecordings;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={32} className="animate-spin" style={{ color: theme.colors.primary }} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <h1
           className="text-2xl font-bold"
@@ -142,278 +80,143 @@ export default function Workbench() {
           Agent Workbench
         </h1>
         <p className="text-sm mt-1" style={{ color: theme.colors.textMuted }}>
-          Pick a scenario. The agent decides. The receipt goes on-chain.
+          Browse {decisions.length} agent decisions recorded on Casper testnet.
+          Each receipt is independently verifiable via RPC.
         </p>
       </div>
 
-      {/* Session usage bar */}
+      {/* Static mode notice */}
       <div
-        className={`flex items-center justify-between px-4 py-2.5 ${theme.ui.radius} border`}
-        style={{ borderColor: theme.colors.border, backgroundColor: theme.colors.surface }}
+        className={`flex items-center gap-3 px-4 py-3 ${theme.ui.radius} border`}
+        style={{
+          borderColor: theme.colors.primary + "30",
+          backgroundColor: theme.colors.primary + "08",
+        }}
       >
-        <span className="text-xs" style={{ color: theme.colors.textMuted }}>
-          Session recordings
-        </span>
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-3 h-3 rounded-sm"
-                style={{
-                  backgroundColor:
-                    i < sessionRecordings
-                      ? theme.colors.primary
-                      : theme.colors.surfaceAlt,
-                }}
-              />
-            ))}
-          </div>
-          <span
-            className="text-xs font-mono"
-            style={{
-              color:
-                sessionRemaining <= 1
-                  ? theme.colors.warning
-                  : theme.colors.textMuted,
-            }}
-          >
-            {sessionRemaining} left
-          </span>
+        <Lock size={16} style={{ color: theme.colors.primary }} />
+        <div className="flex-1">
+          <p className="text-sm font-medium" style={{ color: theme.colors.text }}>
+            Read-Only Demo
+          </p>
+          <p className="text-xs" style={{ color: theme.colors.textMuted }}>
+            These {decisions.length} decisions were recorded on-chain during the live demo.
+            Live recording requires a backend with the signing key.
+          </p>
         </div>
       </div>
 
-      {error && (
-        <div
-          className={`flex items-center gap-3 p-4 ${theme.ui.radius}`}
-          style={{ backgroundColor: theme.colors.error + "15" }}
-        >
-          <AlertTriangle size={18} style={{ color: theme.colors.error }} />
-          <p className="text-sm" style={{ color: theme.colors.error }}>{error}</p>
-        </div>
-      )}
+      {/* Recorded decisions */}
+      <div className="space-y-4">
+        {decisions.map((d) => {
+          const meta = SCENARIO_META[d.actionClass] || {
+            label: d.actionClass,
+            icon: Shield,
+            color: theme.colors.primary,
+            description: "",
+          };
+          const Icon = meta.icon;
 
-      {/* Step: Pick scenario */}
-      {step === "pick" && (
-        <div className="grid grid-cols-1 gap-4">
-          {SCENARIOS.map((s) => {
-            const Icon = s.icon;
-            const disabled = sessionRemaining <= 0;
-            return (
-              <button
-                key={s.id}
-                onClick={() => !disabled && handleRecord(s.id)}
-                disabled={disabled}
-                className={`text-left p-5 ${theme.ui.radius} border transition-all ${
-                  disabled ? "opacity-40 cursor-not-allowed" : "hover:border-current cursor-pointer"
-                }`}
-                style={{
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.surface,
-                }}
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: s.color + "15" }}
-                  >
-                    <Icon size={24} style={{ color: s.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3
-                        className="font-semibold"
-                        style={{ color: theme.colors.text }}
-                      >
-                        {s.label}
-                      </h3>
-                      <span
-                        className="text-xs font-mono px-2 py-0.5 rounded"
-                        style={{
-                          backgroundColor: theme.colors.surfaceAlt,
-                          color: theme.colors.textMuted,
-                        }}
-                      >
-                        {s.agent}
-                      </span>
-                    </div>
-                    <p className="text-sm" style={{ color: theme.colors.textMuted }}>
-                      {s.description}
-                    </p>
-                    <p className="text-xs mt-1" style={{ color: theme.colors.textMuted + "99" }}>
-                      {s.detail}
-                    </p>
-                  </div>
-                  <ArrowRight
-                    size={20}
-                    className="flex-shrink-0 mt-3"
-                    style={{ color: theme.colors.textMuted }}
-                  />
+          return (
+            <div
+              key={d.decisionId}
+              className={`${theme.ui.radius} border p-5`}
+              style={{
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.surface,
+              }}
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: meta.color + "15" }}
+                >
+                  <Icon size={24} style={{ color: meta.color }} />
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold" style={{ color: theme.colors.text }}>
+                      {meta.label}
+                    </h3>
+                    <span
+                      className="text-xs font-mono px-2 py-0.5 rounded"
+                      style={{
+                        backgroundColor: theme.colors.surfaceAlt,
+                        color: theme.colors.textMuted,
+                      }}
+                    >
+                      {d.agentId}
+                    </span>
+                    <span
+                      className="text-xs font-mono px-2 py-0.5 rounded"
+                      style={{
+                        backgroundColor: theme.colors.surfaceAlt,
+                        color: theme.colors.textMuted,
+                      }}
+                    >
+                      #{d.decisionId}
+                    </span>
+                  </div>
+                  <p className="text-sm" style={{ color: theme.colors.textMuted }}>
+                    {meta.description}
+                  </p>
 
-      {/* Step: Recording (submitting to chain) */}
-      {step === "recording" && scenario && (
-        <div className={`card ${theme.ui.radius} text-center py-12`}>
-          <Loader2
-            size={40}
-            className="animate-spin mx-auto mb-4"
-            style={{ color: theme.colors.primary }}
-          />
-          <p
-            className="font-semibold text-lg"
-            style={{ color: theme.colors.text, fontFamily: theme.fonts.headline }}
-          >
-            Agent is deciding...
-          </p>
-          <p className="text-sm mt-2" style={{ color: theme.colors.textMuted }}>
-            {scenario.label}: hashing data and submitting to Casper testnet
-          </p>
-        </div>
-      )}
+                  {/* On-chain proof summary */}
+                  <div className="flex items-center gap-4 mt-3 flex-wrap">
+                    <span className="flex items-center gap-1 text-xs" style={{ color: theme.colors.success }}>
+                      <CheckCircle size={12} />
+                      Block #{d.blockHeight}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs font-mono" style={{ color: theme.colors.textMuted }}>
+                      <Hash size={10} />
+                      {d.txHash.slice(0, 12)}...
+                    </span>
+                  </div>
+                </div>
 
-      {/* Step: Pending confirmation */}
-      {step === "pending" && result && scenario && (
-        <div className={`card ${theme.ui.radius} space-y-5`}>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Clock size={24} style={{ color: theme.colors.warning }} />
-              <span
-                className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full animate-pulse"
-                style={{ backgroundColor: theme.colors.warning }}
-              />
+                {/* Actions */}
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  <Link
+                    to={`/receipt/${d.decisionId}`}
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
+                    style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}
+                  >
+                    <FileText size={12} /> Receipt
+                  </Link>
+                  <a
+                    href={`https://testnet.cspr.live/transaction/${d.txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
+                    style={{ borderColor: theme.colors.border, color: theme.colors.textMuted }}
+                  >
+                    <ExternalLink size={12} /> Explorer
+                  </a>
+                </div>
+              </div>
             </div>
-            <div>
-              <p
-                className="font-semibold"
-                style={{ color: theme.colors.warning, fontFamily: theme.fonts.headline }}
-              >
-                Pending Confirmation
-              </p>
-              <p className="text-xs" style={{ color: theme.colors.textMuted }}>
-                Transaction submitted. Waiting for Casper block finality...
-              </p>
-            </div>
-          </div>
+          );
+        })}
+      </div>
 
-          <div className="space-y-2">
-            <InfoRow label="Scenario" value={scenario.label} />
-            <InfoRow label="Agent" value={scenario.agent} mono />
-            <InfoRow label="Decision ID" value={`#${result.decisionId}`} mono />
-            <InfoRow label="Tx Hash" value={result.txHash} mono truncate />
-          </div>
-
-          <div className="flex items-center justify-center gap-2 py-3">
-            <Loader2
-              size={14}
-              className="animate-spin"
-              style={{ color: theme.colors.primary }}
-            />
-            <span className="text-xs" style={{ color: theme.colors.textMuted }}>
-              Polling for on-chain confirmation...
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Step: Confirmed */}
-      {step === "confirmed" && result && scenario && (
-        <div className="space-y-4">
-          <div
-            className={`flex items-center gap-4 p-5 ${theme.ui.radius}`}
-            style={{
-              backgroundColor: theme.colors.success + "10",
-              borderLeft: `4px solid ${theme.colors.success}`,
-            }}
-          >
-            <CheckCircle size={32} style={{ color: theme.colors.success }} />
-            <div>
-              <p
-                className="text-lg font-bold"
-                style={{ color: theme.colors.success, fontFamily: theme.fonts.headline }}
-              >
-                Confirmed On-Chain
-              </p>
-              <p className="text-sm" style={{ color: theme.colors.textMuted }}>
-                Decision #{result.decisionId} recorded at block{" "}
-                {blockHeight > 0 ? `#${blockHeight}` : "(finalizing)"}.
-              </p>
-            </div>
-          </div>
-
-          <div className={`card ${theme.ui.radius} space-y-3`}>
-            <InfoRow label="Agent" value={scenario.agent} mono />
-            <InfoRow label="Action" value={scenario.label} />
-            <InfoRow label="Input Hash" value={result.inputHash} mono truncate />
-            <InfoRow label="Output Hash" value={result.outputHash} mono truncate />
-            <InfoRow label="Tx Hash" value={result.txHash} mono truncate />
-            {blockHeight > 0 && (
-              <InfoRow label="Block" value={`#${blockHeight}`} mono />
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <Link
-              to={`/receipt/${result.decisionId}`}
-              className="flex items-center justify-center gap-2 flex-1 py-3 text-sm rounded-lg border transition-colors hover:bg-white/5"
-              style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}
-            >
-              <FileText size={16} /> View Receipt
-            </Link>
-            <a
-              href={result.explorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 flex-1 py-3 text-sm rounded-lg border transition-colors hover:bg-white/5"
-              style={{ borderColor: theme.colors.border, color: theme.colors.textMuted }}
-            >
-              <ExternalLink size={16} /> Casper Explorer
-            </a>
-          </div>
-
-          <button
-            onClick={reset}
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm rounded-lg border transition-colors hover:bg-white/5"
-            style={{ borderColor: theme.colors.border, color: theme.colors.textMuted }}
-          >
-            <Zap size={14} /> Try Another Scenario
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function InfoRow({
-  label,
-  value,
-  mono,
-  truncate: trunc,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  truncate?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span
-        className="text-xs uppercase tracking-wider flex-shrink-0"
-        style={{ color: theme.colors.textMuted }}
+      {/* CTA to verify */}
+      <div
+        className={`${theme.ui.radius} border p-6 text-center`}
+        style={{ borderColor: theme.colors.border, backgroundColor: theme.colors.surface }}
       >
-        {label}
-      </span>
-      <span
-        className={`text-sm ${mono ? "font-mono" : ""} ${trunc ? "truncate" : ""} text-right`}
-        style={{ color: theme.colors.text }}
-        title={value}
-      >
-        {value}
-      </span>
+        <Shield size={32} className="mx-auto mb-3" style={{ color: theme.colors.primary }} />
+        <h3 className="font-semibold" style={{ color: theme.colors.text }}>
+          Verify Any Decision
+        </h3>
+        <p className="text-sm mt-1 mb-4" style={{ color: theme.colors.textMuted }}>
+          Pick a decision, edit the data, and see how on-chain hashes catch tampering.
+        </p>
+        <Link
+          to="/verify"
+          className="btn-primary inline-flex items-center gap-2 px-6 py-2.5"
+        >
+          <Shield size={16} /> Try Verification
+        </Link>
+      </div>
     </div>
   );
 }

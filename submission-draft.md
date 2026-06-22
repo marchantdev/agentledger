@@ -37,7 +37,7 @@ AgentLedger provides tamper-proof decision receipts for AI agents on Casper. Eve
 Key capabilities:
 - **Record:** Agents call `record_decision` to attest any decision on Casper testnet
 - **Receipts:** Shareable `/receipt/:id` pages with chain verification badge, QR code, and audit-ready export (Markdown/JSON)
-- **Workbench:** Live Agent Workbench with fixed vendor-payment/DeFi/risk scenarios, rate-limited and balance-protected for safe public access
+- **Workbench:** Browse 6 recorded agent decisions with on-chain proof, block heights, and explorer links
 - **Verify:** Interactive tamper detection — modify any field and watch the hash comparison break in real time
 - **Prove:** All transactions publicly verifiable on the Casper testnet explorer
 
@@ -46,8 +46,8 @@ Key capabilities:
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | Smart Contract | Odra 2.8.0 (Rust) on Casper testnet | DecisionRegistry — stores decision hashes on-chain |
-| Chain Interaction | casper-client CLI | Submits transactions and queries contract state |
-| Backend API | Express.js (Node.js) | Thin bridge: hashes data, calls contract, serves queries |
+| Chain Interaction | casper-client CLI | Submits transactions (recording mode) |
+| Verification | Client-side SHA-256 + Casper RPC | Browser-native hash comparison against on-chain data |
 | Frontend | React + Vite + TypeScript + Tailwind CSS | Dashboard, record interface, tamper verification page |
 | Hashing | SHA-256 | Tamper-proof fingerprinting of decision inputs/outputs |
 | Verification | Casper testnet RPC | Compares client-side hashes to on-chain attestation data |
@@ -73,8 +73,8 @@ The hash-only approach keeps gas costs minimal (~3 CSPR per receipt) while provi
 | Resource | URL |
 |----------|-----|
 | GitHub Repository | https://github.com/marchantdev/agentledger |
-| Live Demo | https://trigger-spring-blair-refer.trycloudflare.com |
-| Demo Video | https://github.com/marchantdev/agentledger/blob/master/demo-assets/agentledger_demo.mp4 |
+| Live Demo | https://frontend-beige-zeta-86.vercel.app |
+| Demo Video | https://github.com/marchantdev/agentledger/blob/master/demo-assets/agentledger_demo_v3.mp4 |
 | Contract on Testnet | https://testnet.cspr.live/contract/contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a |
 
 ## 10. Team

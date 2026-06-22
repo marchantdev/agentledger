@@ -1,0 +1,142 @@
+[
+  {
+    "decisionId": 0,
+    "agentId": "treasury-agent-01",
+    "actionClass": "vendor_payment_approval",
+    "inputHash": "6552c4861ea6d879333b19684af20a7a16a7fd7d09958b55990dd019409c290a",
+    "outputHash": "f54c519a44a589b58e94de55503193d4c317bba1dc78e9e09aa1e76683d1bc08",
+    "jobPaymentRefHash": "x402-job-0x7f3a2b1c",
+    "txHash": "33d0c30518c49eee0d1da80d6002020e54aff02b12b7a899e36e1b25b7dc90de",
+    "blockHeight": 8256786,
+    "timestamp": "2026-06-21T20:24:16.570Z",
+    "inputData": {
+      "invoice_id": "INV-2026-0847",
+      "vendor": "CloudServ Inc",
+      "amount": 10000,
+      "currency": "USDT",
+      "budget_remaining": 45000
+    },
+    "outputData": {
+      "decision": "APPROVED",
+      "reason": "Within budget threshold (22%)",
+      "payment_amount": 10000,
+      "approval_confidence": 0.94
+    }
+  },
+  {
+    "decisionId": 1,
+    "agentId": "treasury-agent-01",
+    "actionClass": "payment_rejection",
+    "inputHash": "e76f75d8dca32326ff9cf11acf0e72424fe2efb1849d030e67a96bd1008ab630",
+    "outputHash": "486affe1e0d62801ff809f8703e88614c1ab064909ddcb9a5c993e1c3b4b632d",
+    "jobPaymentRefHash": "x402-job-0x2a9c1d4e",
+    "txHash": "dc6d937f77d868999d80200bd214d4c67470e4ccbfee9cdc64366b7e29e7d3ef",
+    "blockHeight": 8256787,
+    "timestamp": "2026-06-21T20:24:22.513Z",
+    "inputData": {
+      "invoice_id": "INV-2026-0903",
+      "vendor": "DataSync LLC",
+      "amount": 38000,
+      "currency": "USDT",
+      "budget_remaining": 45000
+    },
+    "outputData": {
+      "decision": "REJECTED",
+      "reason": "Exceeds single-vendor limit (84% of remaining budget)",
+      "risk_score": 0.91
+    }
+  },
+  {
+    "decisionId": 2,
+    "agentId": "risk-monitor-02",
+    "actionClass": "risk_alert",
+    "inputHash": "c6df00271cdaf1e441487b9d1bcf2a458235852ab0759bd1bf9ce2599ea3e4be",
+    "outputHash": "3241e63cbab1a04be45c48787c4b142747a548c4a9fb348824ba6cbe57b49a82",
+    "jobPaymentRefHash": "",
+    "txHash": "68fb33abbf3f61564bc5f36ea73665d1dc1cfca9986cd7d35a92c4eca8742483",
+    "blockHeight": 8256788,
+    "timestamp": "2026-06-21T20:24:28.294Z",
+    "inputData": {
+      "asset": "CSPR/USDT",
+      "volatility_24h": 0.087,
+      "threshold": 0.05,
+      "position_size": 25000
+    },
+    "outputData": {
+      "alert_level": "HIGH",
+      "action": "reduce_exposure",
+      "recommended_reduction": 0.4,
+      "reason": "24h volatility 74% above threshold"
+    }
+  },
+  {
+    "decisionId": 3,
+    "agentId": "trading-agent-03",
+    "actionClass": "swap",
+    "inputHash": "b2dede5ad2c4c9147c75ec22893df24dc560efe6aa9c0a41c8e7ad4687b40f91",
+    "outputHash": "91a330ec127fe6d126da0811a1cff85d1a0dfd2bc1a7332f4ec4b8577cb48126",
+    "jobPaymentRefHash": "x402-job-0x8b4f7e23",
+    "txHash": "bd9165f409b6a4e81dfc602f0369e402aa5e8d00d4aff2c21858b6bb88ab47dc",
+    "blockHeight": 8256789,
+    "timestamp": "2026-06-21T20:24:34.086Z",
+    "inputData": {
+      "pair": "CSPR/USDT",
+      "side": "BUY",
+      "amount": 5000,
+      "limit_price": 0.042,
+      "slippage_tolerance": 0.005
+    },
+    "outputData": {
+      "executed": true,
+      "fill_price": 0.0418,
+      "filled_amount": 5000,
+      "fee": 5
+    }
+  },
+  {
+    "decisionId": 4,
+    "agentId": "compliance-agent-04",
+    "actionClass": "vendor_payment_approval",
+    "inputHash": "d76b02c7438da728e1e0ac100685eee3637e7a2ac15b1f0ccaa6b8a67b473c21",
+    "outputHash": "bf99645b8f3df36c4bf9b015bd7b54b594d9f814512d39c4120dcd9f8eb4e012",
+    "jobPaymentRefHash": "x402-job-0x3c5d8f12",
+    "txHash": "a8553b3715a3947147e7f36863e0d25db920507369e4972aee4dee7e56fb757e",
+    "blockHeight": 8256789,
+    "timestamp": "2026-06-21T20:24:39.860Z",
+    "inputData": {
+      "invoice_id": "INV-2026-0952",
+      "vendor": "SecureNet Corp",
+      "amount": 7500,
+      "currency": "USDT",
+      "contract_ref": "SNC-2026-Q2"
+    },
+    "outputData": {
+      "decision": "APPROVED",
+      "reason": "Within policy limits, vendor verified",
+      "payment_amount": 7500,
+      "approval_confidence": 0.97
+    }
+  },
+  {
+    "decisionId": 5,
+    "agentId": "trading-agent-03",
+    "actionClass": "rebalance",
+    "inputHash": "6cf922b230c046fe6a373d70d68ab1ee99aa95af56abb7fa88f94523414d6fac",
+    "outputHash": "07054db3aef1c490d2052b7c4e505152d7912143504435dd164f829ce80f2091",
+    "jobPaymentRefHash": "x402-job-0x1a2b3c4d",
+    "txHash": "fdfd7b9cbe52109e0d62a008018ea45fbfdd1f56c4682d46c50a3fa9b8f3340a",
+    "blockHeight": 8256790,
+    "timestamp": "2026-06-21T20:24:45.717Z",
+    "inputData": {
+      "portfolio": { "CSPR": 0.45, "USDT": 0.35, "ETH": 0.2 },
+      "target": { "CSPR": 0.4, "USDT": 0.4, "ETH": 0.2 },
+      "total_value": 100000
+    },
+    "outputData": {
+      "trades_executed": 2,
+      "cspr_sold": 5000,
+      "usdt_bought": 5000,
+      "new_allocation": { "CSPR": 0.4, "USDT": 0.4, "ETH": 0.2 }
+    }
+  }
+]

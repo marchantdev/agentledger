@@ -10,11 +10,11 @@ AgentLedger is a Casper-native accountability layer for AI agents performing pai
 
 ## Live Demo
 
-**[Try it here](https://beast-minnesota-parish-monkey.trycloudflare.com)** (Casper Testnet)
+**[Try it here](https://frontend-beige-zeta-86.vercel.app)** (Casper Testnet)
 
 - **Dashboard** — Real-time view of all agent decisions with on-chain stats and explorer links
 - **Receipts** — Shareable `/receipt/:id` pages with chain verification badge, tamper demo, and QR code
-- **Agent Workbench** — Run fixed vendor-payment/DeFi/risk scenarios live on Casper testnet (rate-limited + abuse-protected)
+- **Agent Workbench** — Browse 6 recorded agent decisions with on-chain proof links
 - **Verify** — Select any decision, edit the data, and watch tamper detection in action
 - **Audit Export** — Download audit-ready receipt reports in Markdown or JSON
 - **Explorer** — Search and filter decisions by agent, action class, or time
@@ -34,15 +34,19 @@ The **payment/job reference hash** is the key differentiator — it ties each de
 
 ```
 ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────────────┐
-│   React Frontend │────▶│  Express Backend  │────▶│  Casper Testnet (Odra)   │
-│   (Vite + TS)    │     │  (Node.js API)    │     │  DecisionRegistry Contract│
-│                  │     │                   │     │                          │
-│  Dashboard       │     │  GET /decisions   │     │  record_decision()       │
-│  Verify Page     │     │  POST /verify     │     │  get_decision()          │
-│  Record Page     │     │  POST /record     │     │  get_total_decisions()   │
-│  Explorer        │     │  GET /stats       │     │  get_agent_decision_count│
-└──────────────────┘     └──────────────────┘     └──────────────────────────┘
+│   React Frontend │────▶│  Vercel Edge Fn   │────▶│  Casper Testnet (Odra)   │
+│   (Vite + TS)    │     │  /api/rpc proxy   │     │  DecisionRegistry Contract│
+│                  │     │  (CORS bypass)    │     │                          │
+│  Dashboard       │     └──────────────────┘     │  record_decision()       │
+│  Verify Page     │                               │  get_decision()          │
+│  Workbench       │  Client-side SHA-256 hashing  │  get_total_decisions()   │
+│  Receipt/Export  │  Static decisions.json         │  get_agent_decision_count│
+└──────────────────┘                               └──────────────────────────┘
 ```
+
+> **Note:** The frontend runs fully static on Vercel. Verification calls Casper RPC
+> directly via a thin Edge Function proxy (CORS). No backend server required.
+> Recording new decisions requires the backend with a signing key.
 
 ### On-Chain Contract
 
@@ -307,7 +311,7 @@ AgentLedger is Casper-native by design, not a chain-agnostic tool ported to Casp
 
 - **Institutional positioning:** Casper targets enterprise and regulated industries. Agent accountability fits this thesis — financial institutions deploying AI agents need audit trails on infrastructure they can trust.
 - **Odra framework (Rust):** The DecisionRegistry is a native Odra smart contract, not a Solidity port. Rust's safety guarantees and Odra's developer ergonomics make contract development first-class.
-- **Finality guarantees:** Casper's consensus finality means a recorded receipt is final. No reorg risk, no confirmation waiting — critical for audit-grade records.
+- **Finality guarantees:** Casper's consensus finality means a recorded receipt is final. No reorg risk — clear confirmation and finality semantics, critical for audit-grade records.
 - **Gas-efficient hash storage:** Casper's named-key storage model stores hashes efficiently. No raw prompts or output data on-chain — hashes only, keeping costs predictable.
 
 ## Differentiation
