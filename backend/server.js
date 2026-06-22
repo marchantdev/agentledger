@@ -48,6 +48,7 @@ const RATE_LIMIT_MAX = 3; // max 3 record calls per minute per IP
 const rateLimitMap = new Map(); // ip -> { count, resetAt }
 
 function rateLimit(req, res, next) {
+  if (process.env.TEST_MODE) return next(); // bypass in test
   const ip = req.ip || req.connection.remoteAddress || "unknown";
   const now = Date.now();
   let entry = rateLimitMap.get(ip);
@@ -72,6 +73,7 @@ const SESSION_CAP = 5; // max 5 recordings per session
 const sessionCounts = new Map(); // sessionId -> count
 
 function perSessionCap(req, res, next) {
+  if (process.env.TEST_MODE) return next(); // bypass in test
   const sessionId = req.headers["x-session-id"] || req.ip || "anon";
   const count = sessionCounts.get(sessionId) || 0;
   if (count >= SESSION_CAP) {

@@ -103,6 +103,9 @@ let execFileCalls = []; // records all calls for side-effect auditing
 
 function startTestServer() {
   return new Promise((resolve) => {
+    // Bypass rate limiter and session cap in tests
+    process.env.TEST_MODE = "1";
+
     // Patch execFileSync to capture calls without running casper-client
     child_process.execFileSync = function (cmd, args, opts) {
       execFileCalls.push({ cmd, args: [...args] });
