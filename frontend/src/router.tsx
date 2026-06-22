@@ -6,6 +6,7 @@ import Explore from "./pages/Explore";
 import Verify from "./pages/Verify";
 import RecordDemo from "./pages/RecordDemo";
 import Receipt from "./pages/Receipt";
+import Workbench from "./pages/Workbench";
 import About from "./pages/About";
 
 export default function AppRouter() {
@@ -22,6 +23,7 @@ export default function AppRouter() {
           <Route path="/verify" element={<Verify />} />
           <Route path="/record" element={<RecordDemo />} />
           <Route path="/receipt/:id" element={<Receipt />} />
+          <Route path="/workbench" element={<Workbench />} />
           <Route path="/about" element={<About />} />
         </Route>
       </Routes>

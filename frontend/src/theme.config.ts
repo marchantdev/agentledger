@@ -57,7 +57,7 @@ export const theme = {
 
   navLinks: [
     { label: "Dashboard", path: "/dashboard" },
-    { label: "Explorer", path: "/explore" },
+    { label: "Workbench", path: "/workbench" },
     { label: "Verify", path: "/verify" },
     { label: "Record", path: "/record" },
     { label: "Docs", path: "/about" },

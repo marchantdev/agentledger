@@ -58,6 +58,17 @@ export interface RecordResponse {
   explorerUrl: string;
 }
 
+export interface WorkbenchLimitsResponse {
+  rateLimit: { max: number; remaining: number; windowMs: number };
+  session: { recordings: number; cap: number };
+}
+
+export interface FinalityResponse {
+  status: "confirmed" | "pending";
+  blockHeight: number;
+  decisionId: number;
+}
+
 export const api = {
   getDecisions: (agent?: string) => {
     const params = agent && agent !== "all" ? `?agent=${agent}` : "";
@@ -82,4 +93,16 @@ export const api = {
       body: JSON.stringify(data),
     }),
   health: () => apiFetch<{ status: string; decisions: number }>("/api/health"),
+  workbenchRecord: (scenario: string, sessionId: string) =>
+    apiFetch<RecordResponse>("/api/workbench/record", {
+      method: "POST",
+      headers: { "X-Session-Id": sessionId },
+      body: JSON.stringify({ scenario }),
+    }),
+  workbenchLimits: (sessionId: string) =>
+    apiFetch<WorkbenchLimitsResponse>("/api/workbench/limits", {
+      headers: { "X-Session-Id": sessionId },
+    }),
+  finality: (id: number) =>
+    apiFetch<FinalityResponse>(`/api/decisions/${id}/finality`),
 };
