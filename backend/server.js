@@ -530,6 +530,145 @@ app.get("/api/decisions/:id/finality", async (req, res) => {
   }
 });
 
+// GET /api/decisions/:id/audit-report — audit-ready receipt report (Markdown or JSON)
+app.get("/api/decisions/:id/audit-report", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const decision = decisions.find((d) => d.decisionId === id);
+  if (!decision) {
+    return res.status(404).json({ error: "Decision not found" });
+  }
+
+  const format = (req.query.format || "markdown").toString().toLowerCase();
+
+  // Verify against on-chain data
+  let verificationResult = { verified: false, chainStatus: "unknown", onChainInputHash: null, onChainOutputHash: null, blockHeight: decision.blockHeight };
+  try {
+    const rpcRes = await fetch(NODE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "info_get_transaction",
+        params: { transaction_hash: { Version1: decision.txHash }, finalized_approvals: false },
+        id: 1,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const rpcJson = await rpcRes.json();
+    if (rpcJson.result?.transaction) {
+      const v1 = rpcJson.result.transaction.Version1;
+      const namedArgs = v1?.payload?.fields?.args?.Named || v1?.body?.args || null;
+      if (Array.isArray(namedArgs)) {
+        for (const [argName, argValue] of namedArgs) {
+          if (argName === "input_hash") verificationResult.onChainInputHash = argValue?.parsed ?? null;
+          if (argName === "output_hash") verificationResult.onChainOutputHash = argValue?.parsed ?? null;
+        }
+      }
+      if (rpcJson.result.execution_info?.block_height) {
+        verificationResult.blockHeight = rpcJson.result.execution_info.block_height;
+      }
+      if (verificationResult.onChainInputHash && verificationResult.onChainOutputHash) {
+        verificationResult.verified =
+          verificationResult.onChainInputHash === decision.inputHash &&
+          verificationResult.onChainOutputHash === decision.outputHash;
+        verificationResult.chainStatus = "finalized";
+      }
+    }
+  } catch { /* fail open — report will note verification failure */ }
+
+  const report = {
+    title: "AgentLedger — Audit-Ready Receipt Report",
+    generated: new Date().toISOString(),
+    receipt: {
+      id: decision.decisionId,
+      agent: decision.agentId,
+      actionClass: decision.actionClass,
+      jobPaymentRefHash: decision.jobPaymentRefHash || null,
+      timestamp: decision.timestamp,
+    },
+    cryptographic: {
+      inputHash: decision.inputHash,
+      outputHash: decision.outputHash,
+    },
+    onChain: {
+      network: "Casper Testnet",
+      txHash: decision.txHash,
+      blockHeight: verificationResult.blockHeight,
+      explorerUrl: `https://testnet.cspr.live/transaction/${decision.txHash}`,
+      contractPackage: CONTRACT_PACKAGE,
+    },
+    verification: {
+      status: verificationResult.verified ? "VERIFIED" : verificationResult.chainStatus === "finalized" ? "MISMATCH" : "UNVERIFIABLE",
+      chainStatus: verificationResult.chainStatus,
+      onChainInputHash: verificationResult.onChainInputHash,
+      onChainOutputHash: verificationResult.onChainOutputHash,
+      inputMatch: verificationResult.onChainInputHash === decision.inputHash,
+      outputMatch: verificationResult.onChainOutputHash === decision.outputHash,
+    },
+    privacyNote: "No raw prompt or output data is stored on-chain — hashes only. Input/output content can be verified by anyone holding the original data without exposing it publicly.",
+  };
+
+  if (format === "json") {
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="agentledger-receipt-${id}.json"`);
+    return res.json(report);
+  }
+
+  // Default: Markdown
+  const md = [
+    `# AgentLedger — Audit-Ready Receipt Report`,
+    ``,
+    `**Generated:** ${report.generated}`,
+    ``,
+    `## Receipt #${report.receipt.id}`,
+    ``,
+    `| Field | Value |`,
+    `|-------|-------|`,
+    `| Agent | \`${report.receipt.agent}\` |`,
+    `| Action / Job Type | \`${report.receipt.actionClass}\` |`,
+    `| Job Payment Ref | \`${report.receipt.jobPaymentRefHash || "—"}\` |`,
+    `| Timestamp | ${report.receipt.timestamp} |`,
+    ``,
+    `## Cryptographic Proof`,
+    ``,
+    `| Hash | Value |`,
+    `|------|-------|`,
+    `| Input Hash | \`${report.cryptographic.inputHash}\` |`,
+    `| Output Hash | \`${report.cryptographic.outputHash}\` |`,
+    ``,
+    `## On-Chain Reference`,
+    ``,
+    `| Field | Value |`,
+    `|-------|-------|`,
+    `| Network | ${report.onChain.network} |`,
+    `| Transaction Hash | \`${report.onChain.txHash}\` |`,
+    `| Block Height | ${report.onChain.blockHeight} |`,
+    `| Contract | \`${report.onChain.contractPackage}\` |`,
+    `| Explorer | [View on Casper Explorer](${report.onChain.explorerUrl}) |`,
+    ``,
+    `## Verification`,
+    ``,
+    `| Check | Result |`,
+    `|-------|--------|`,
+    `| Status | **${report.verification.status}** |`,
+    `| Chain Status | ${report.verification.chainStatus} |`,
+    `| Input Hash Match | ${report.verification.inputMatch ? "✅ Match" : "❌ Mismatch"} |`,
+    `| Output Hash Match | ${report.verification.outputMatch ? "✅ Match" : "❌ Mismatch"} |`,
+    ``,
+    `## Privacy Note`,
+    ``,
+    `${report.privacyNote}`,
+    ``,
+    `---`,
+    `*Report generated by [AgentLedger](https://github.com/marchantdev/agentledger)*`,
+    ``,
+  ].join("\n");
+
+  res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="agentledger-receipt-${id}.md"`);
+  res.send(md);
+});
+
 // GET /api/health — health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", decisions: decisions.length, contract: CONTRACT_PACKAGE });

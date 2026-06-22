@@ -105,4 +105,16 @@ export const api = {
     }),
   finality: (id: number) =>
     apiFetch<FinalityResponse>(`/api/decisions/${id}/finality`),
+  auditReport: async (id: number, format: "markdown" | "json" = "markdown") => {
+    const res = await fetch(`${API_BASE}/api/decisions/${id}/audit-report?format=${format}`);
+    if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+    const blob = await res.blob();
+    const ext = format === "json" ? "json" : "md";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `agentledger-receipt-${id}.${ext}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

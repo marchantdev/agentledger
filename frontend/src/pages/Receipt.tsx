@@ -18,6 +18,7 @@ import {
   Link as LinkIcon,
   User,
   Box,
+  Download,
 } from "lucide-react";
 import { theme } from "../theme.config";
 import { api } from "../lib/api";
@@ -36,6 +37,7 @@ export default function Receipt() {
   const [tamperMode, setTamperMode] = useState(false);
   const [tamperResult, setTamperResult] = useState<VerifyResponse | null>(null);
   const [tamperVerifying, setTamperVerifying] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -97,6 +99,18 @@ export default function Receipt() {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const exportReport = async (format: "markdown" | "json") => {
+    if (!decision || exporting) return;
+    setExporting(true);
+    try {
+      await api.auditReport(decision.decisionId, format);
+    } catch {
+      // silent — download will simply not trigger
+    } finally {
+      setExporting(false);
+    }
   };
 
   const shareUrl =
@@ -442,6 +456,49 @@ export default function Receipt() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Audit Export */}
+      <div className={`card ${theme.ui.radius} space-y-4`}>
+        <h2
+          className="font-semibold flex items-center gap-2"
+          style={{ color: theme.colors.text }}
+        >
+          <Download size={16} style={{ color: theme.colors.accent }} />
+          Audit-Ready Export
+        </h2>
+        <p
+          className="text-xs"
+          style={{ color: theme.colors.textMuted }}
+        >
+          Download a self-contained receipt report for compliance records, audits, or archival. No raw prompt or output data is stored on-chain — hashes only.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => exportReport("markdown")}
+            disabled={exporting}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm ${theme.ui.radius} border transition-colors hover:bg-white/5`}
+            style={{
+              borderColor: theme.colors.primary,
+              color: theme.colors.primary,
+            }}
+          >
+            <Download size={14} />
+            {exporting ? "Exporting..." : "Markdown (.md)"}
+          </button>
+          <button
+            onClick={() => exportReport("json")}
+            disabled={exporting}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm ${theme.ui.radius} border transition-colors hover:bg-white/5`}
+            style={{
+              borderColor: theme.colors.accent,
+              color: theme.colors.accent,
+            }}
+          >
+            <Download size={14} />
+            {exporting ? "Exporting..." : "JSON (.json)"}
+          </button>
+        </div>
       </div>
 
       {/* Share / QR section */}
