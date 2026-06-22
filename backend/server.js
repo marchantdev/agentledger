@@ -61,14 +61,16 @@ app.get("/api/decisions/:id", (req, res) => {
   res.json(decision);
 });
 
-// GET /api/stats — summary stats
+// GET /api/stats — summary stats (REAL metrics only — no synthetic/derived values)
 app.get("/api/stats", (req, res) => {
   const agents = new Set(decisions.map((d) => d.agentId));
   const latestBlock = Math.max(...decisions.map((d) => d.blockHeight || 0));
+  const confirmedOnChain = decisions.filter((d) => d.blockHeight > 0).length;
   res.json({
     totalDecisions: decisions.length,
     totalAgents: agents.size,
     latestBlock,
+    confirmedOnChain,
     agents: [...agents].map((agentId) => {
       const agentDecs = decisions.filter((d) => d.agentId === agentId);
       const latest = agentDecs[agentDecs.length - 1];

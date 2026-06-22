@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [decisions, setDecisions] = useState<DecisionRecord[]>([]);
   const [agents, setAgents] = useState<AgentSummary[]>([]);
   const [totalDecisions, setTotalDecisions] = useState(0);
+  const [confirmedOnChain, setConfirmedOnChain] = useState(0);
   const [latestBlock, setLatestBlock] = useState(0);
   const [loading, setLoading] = useState(true);
   const density = densityMap[theme.ui.density];
@@ -48,6 +49,7 @@ export default function Dashboard() {
       .then(([decRes, statsRes]) => {
         setDecisions(decRes.decisions);
         setTotalDecisions(statsRes.totalDecisions);
+        setConfirmedOnChain(statsRes.confirmedOnChain);
         setLatestBlock(statsRes.latestBlock);
         setAgents(statsRes.agents);
       })
@@ -61,13 +63,10 @@ export default function Dashboard() {
   }, [selectedAgent, decisions]);
 
   const stats: Stats[] = [
-    { label: "Total Decisions", value: totalDecisions },
+    { label: "On-Chain Receipts", value: totalDecisions },
+    { label: "Confirmed", value: confirmedOnChain },
     { label: "Active Agents", value: agents.length },
     { label: "Latest Block", value: latestBlock, prefix: "#" },
-    {
-      label: "Decisions/Hour",
-      value: totalDecisions > 0 ? Math.round((totalDecisions / 24) * 10) / 10 : 0,
-    },
   ];
 
   if (loading) {

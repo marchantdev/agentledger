@@ -20,6 +20,7 @@ export interface StatsResponse {
   totalDecisions: number;
   totalAgents: number;
   latestBlock: number;
+  confirmedOnChain: number;
   agents: AgentSummary[];
 }
 
