@@ -91,14 +91,17 @@ agentledger/
 │   ├── server.js      # REST API + static file serving
 │   ├── seed-decisions.json
 │   └── package.json
-└── frontend/          # React dashboard (Vite + TypeScript + Tailwind)
-    ├── src/
-    │   ├── pages/     # Landing, Dashboard, Explore, Verify, Record, About
-    │   ├── components/  # Navbar, Hero, DataGrid, StatCards, etc.
-    │   ├── lib/       # API client, types, utilities
-    │   └── theme.config.ts
-    ├── package.json
-    └── vite.config.ts
+├── frontend/          # React dashboard (Vite + TypeScript + Tailwind)
+│   ├── src/
+│   │   ├── pages/     # Landing, Dashboard, Explore, Verify, Record, Receipt, Workbench, About
+│   │   ├── components/  # Navbar, Hero, DataGrid, StatCards, etc.
+│   │   ├── lib/       # API client, types, utilities
+│   │   └── theme.config.ts
+│   ├── package.json
+│   └── vite.config.ts
+└── examples/          # Integration examples
+    └── node-agent/    # Node.js agent recording example
+        └── record.mjs
 ```
 
 ## Getting Started
@@ -165,6 +168,28 @@ casper-client put-transaction package \
   --standard-payment true
 ```
 
+## Quick Integration (Node.js)
+
+Record an agent decision in ~10 lines:
+
+```js
+const res = await fetch("http://localhost:3001/api/record", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    agentId: "my-billing-agent",
+    actionClass: "invoice_approval",
+    inputData: { invoice_id: "INV-2026-0042", vendor: "Acme Corp", amount: 1200 },
+    outputData: { decision: "APPROVED", reason: "Within budget", confidence: 0.95 },
+    jobPaymentRefHash: "job-ref-abc123",
+  }),
+});
+const { txHash, explorerUrl } = await res.json();
+console.log(`Receipt on-chain: ${explorerUrl}`);
+```
+
+See [`examples/node-agent/record.mjs`](examples/node-agent/record.mjs) for a complete runnable example.
+
 ## API Reference
 
 | Endpoint | Method | Description |
@@ -172,6 +197,7 @@ casper-client put-transaction package \
 | `/api/health` | GET | Health check + decision count |
 | `/api/decisions` | GET | List all decisions (optional `?agent=` filter) |
 | `/api/decisions/:id` | GET | Get single decision by ID |
+| `/api/decisions/:id/audit-report` | GET | Audit-ready receipt report (`?format=markdown\|json`) |
 | `/api/stats` | GET | Summary statistics (agents, counts, latest block) |
 | `/api/verify` | POST | Verify decision integrity against on-chain hashes |
 | `/api/record` | POST | Record a new decision on-chain via `casper-client` |
