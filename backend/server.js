@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -95,26 +95,32 @@ app.post("/api/record", async (req, res) => {
     const outputHash = sha256(canonicalize(outputData));
     const jobRef = jobPaymentRefHash || "";
 
-    // Submit to Casper via casper-client
-    const cmd = [
-      "casper-client put-transaction package",
-      `--node-address ${NODE_URL}`,
-      `--secret-key ${path.join(KEYS_DIR, "secret_key.pem")}`,
-      `--chain-name ${CHAIN_NAME}`,
-      `--contract-package-hash "${CONTRACT_PACKAGE}"`,
-      '--session-entry-point "record_decision"',
-      `--session-arg 'agent_id:string='"'"'${agentId}'"'"''`,
-      `--session-arg 'action_class:string='"'"'${actionClass}'"'"''`,
-      `--session-arg 'input_hash:string='"'"'${inputHash}'"'"''`,
-      `--session-arg 'output_hash:string='"'"'${outputHash}'"'"''`,
-      `--session-arg 'job_payment_ref_hash:string='"'"'${jobRef}'"'"''`,
-      "--payment-amount 3000000000",
-      "--gas-price-tolerance 10",
-      "--pricing-mode classic",
-      "--standard-payment true",
-    ].join(" ");
+    // Validate string inputs — reject shell metacharacters
+    const safeStr = /^[a-zA-Z0-9_\-.:/ ]{1,128}$/;
+    if (!safeStr.test(agentId)) return res.status(400).json({ error: "Invalid agentId" });
+    if (!safeStr.test(actionClass)) return res.status(400).json({ error: "Invalid actionClass" });
+    if (jobRef && !safeStr.test(jobRef)) return res.status(400).json({ error: "Invalid jobPaymentRefHash" });
 
-    const result = JSON.parse(execSync(cmd, { timeout: 30000 }).toString());
+    // Submit to Casper via casper-client — using execFileSync (no shell) to prevent injection
+    const args = [
+      "put-transaction", "package",
+      "--node-address", NODE_URL,
+      "--secret-key", path.join(KEYS_DIR, "secret_key.pem"),
+      "--chain-name", CHAIN_NAME,
+      "--contract-package-hash", CONTRACT_PACKAGE,
+      "--session-entry-point", "record_decision",
+      "--session-arg", `agent_id:string='${agentId}'`,
+      "--session-arg", `action_class:string='${actionClass}'`,
+      "--session-arg", `input_hash:string='${inputHash}'`,
+      "--session-arg", `output_hash:string='${outputHash}'`,
+      "--session-arg", `job_payment_ref_hash:string='${jobRef}'`,
+      "--payment-amount", "3000000000",
+      "--gas-price-tolerance", "10",
+      "--pricing-mode", "classic",
+      "--standard-payment", "true",
+    ];
+
+    const result = JSON.parse(execFileSync("casper-client", args, { timeout: 30000 }).toString());
     const txHash = result.result.transaction_hash.Version1;
 
     // Add to local store
