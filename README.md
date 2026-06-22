@@ -66,9 +66,14 @@ This proves the decision record hasn't been altered since it was attested.
 
 | Decision | Agent | Action | Block | TX |
 |----------|-------|--------|-------|----|
-| 0 | treasury-agent-01 | vendor_payment_approval | 8233736 | [2ab7b9c8...](https://testnet.cspr.live/transaction/2ab7b9c8400274066754386ca999ae6344a85d0c33ff6ec433fa5991eeb9e536) |
+| 0 | treasury-agent-01 | vendor_payment_approval | 8256786 | [33d0c305...](https://testnet.cspr.live/transaction/33d0c30518c49eee0d1da80d6002020e54aff02b12b7a899e36e1b25b7dc90de) |
+| 1 | treasury-agent-01 | payment_rejection | 8256787 | [dc6d937f...](https://testnet.cspr.live/transaction/dc6d937f77d868999d80200bd214d4c67470e4ccbfee9cdc64366b7e29e7d3ef) |
+| 2 | risk-monitor-02 | risk_alert | 8256788 | [68fb33ab...](https://testnet.cspr.live/transaction/68fb33abbf3f61564bc5f36ea73665d1dc1cfca9986cd7d35a92c4eca8742483) |
+| 3 | trading-agent-03 | swap | 8256789 | [bd9165f4...](https://testnet.cspr.live/transaction/bd9165f409b6a4e81dfc602f0369e402aa5e8d00d4aff2c21858b6bb88ab47dc) |
+| 4 | compliance-agent-04 | vendor_payment_approval | 8256789 | [a8553b37...](https://testnet.cspr.live/transaction/a8553b3715a3947147e7f36863e0d25db920507369e4972aee4dee7e56fb757e) |
+| 5 | trading-agent-03 | rebalance | 8256790 | [fdfd7b9c...](https://testnet.cspr.live/transaction/fdfd7b9cbe52109e0d62a008018ea45fbfdd1f56c4682d46c50a3fa9b8f3340a) |
 
-> Additional demo scenarios are stored locally and can be re-recorded on-chain via `POST /api/record`. The verification endpoint confirms each decision's tx hash exists on the Casper testnet in real time.
+All 6 decisions are verified on Casper testnet. Click any transaction to view on the Casper block explorer.
 
 ## Project Structure
 
