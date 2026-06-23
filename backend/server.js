@@ -700,6 +700,27 @@ if (fs.existsSync(FRONTEND_DIST)) {
   });
 }
 
+// RPC proxy for local dev (mirrors Vercel Edge Function api/rpc.ts)
+const ALLOWED_RPC_METHODS = new Set(["info_get_transaction", "query_balance"]);
+app.post("/api/rpc", async (req, res) => {
+  const { method } = req.body || {};
+  if (!method || !ALLOWED_RPC_METHODS.has(method)) {
+    return res.status(403).json({ error: `Method not allowed: ${method}` });
+  }
+  try {
+    const rpcRes = await fetch(NODE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+      signal: AbortSignal.timeout(15000),
+    });
+    const data = await rpcRes.json();
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ error: "RPC proxy error", detail: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`AgentLedger API running on port ${PORT}`);
