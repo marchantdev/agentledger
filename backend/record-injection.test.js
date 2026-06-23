@@ -191,7 +191,7 @@ async function run() {
     for (let i = 0; i < 3; i++) {
       const agentArg = last3[i].args.find(a => a.startsWith("agent_id:string="));
       assert.ok(agentArg, "Should have agent_id session-arg");
-      assert.strictEqual(agentArg, `agent_id:string=${expectedAgents[i]}`,
+      assert.strictEqual(agentArg, `agent_id:string='${expectedAgents[i]}'`,
         `Expected preset agent ${expectedAgents[i]}, got: ${agentArg}`);
     }
   });
@@ -228,7 +228,7 @@ async function run() {
     // Verify preset agent was used, not the injected one
     const lastCall = execFileCalls[execFileCalls.length - 1];
     const agentArg = lastCall.args.find(a => a.startsWith("agent_id:string="));
-    assert.strictEqual(agentArg, "agent_id:string=treasury-agent-01",
+    assert.strictEqual(agentArg, "agent_id:string='treasury-agent-01'",
       "Must use preset agentId, not user-supplied 'evil-agent'");
   });
 

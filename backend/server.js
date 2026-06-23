@@ -139,9 +139,9 @@ async function checkKeyBalance() {
     return cachedBalance.motes;
   }
   try {
-    // Read public key from the secret key PEM
+    // Read account hash from the public key PEM
     const pubKeyHex = execFileSync("casper-client", [
-      "account-address", "--public-key", path.join(KEYS_DIR, "secret_key.pem"),
+      "account-address", "--public-key", path.join(KEYS_DIR, "public_key.pem"),
     ], { timeout: 5000 }).toString().trim();
 
     // Validate pubKeyHex looks like a valid account hash
@@ -284,11 +284,11 @@ app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async
       "--chain-name", CHAIN_NAME,
       "--contract-package-hash", CONTRACT_PACKAGE,
       "--session-entry-point", "record_decision",
-      "--session-arg", `agent_id:string=${agentId}`,
-      "--session-arg", `action_class:string=${actionClass}`,
-      "--session-arg", `input_hash:string=${inputHash}`,
-      "--session-arg", `output_hash:string=${outputHash}`,
-      "--session-arg", `job_payment_ref_hash:string=${jobRef}`,
+      "--session-arg", `agent_id:string='${agentId}'`,
+      "--session-arg", `action_class:string='${actionClass}'`,
+      "--session-arg", `input_hash:string='${inputHash}'`,
+      "--session-arg", `output_hash:string='${outputHash}'`,
+      "--session-arg", `job_payment_ref_hash:string='${jobRef}'`,
       "--payment-amount", "3000000000",
       "--gas-price-tolerance", "10",
       "--pricing-mode", "classic",
