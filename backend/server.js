@@ -352,7 +352,7 @@ app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async
       "--session-arg", `output_hash:string='${outputHash}'`,
       "--session-arg", `job_payment_ref_hash:string='${jobRef}'`,
       "--payment-amount", "3000000000",
-      "--gas-price-tolerance", "10",
+      "--gas-price-tolerance", "1",
       "--pricing-mode", "classic",
       "--standard-payment", "true",
     ];
