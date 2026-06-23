@@ -6,3 +6,16 @@ dist/
 keys/
 keys-v2/
 decisions-store.json
+
+# Internal governance / stale planning docs — not for public submission repo (2026-06-23)
+why-we-win.md
+judge-packet.md
+quality-review.md
+FACT-LOCK.md
+JUDGING_STRATEGY.md
+decision-room.md
+idea-candidates.md
+idea-candidates.json
+winning-thesis.md
+hackathon-requirements.md
+hackathon-landscape.md
