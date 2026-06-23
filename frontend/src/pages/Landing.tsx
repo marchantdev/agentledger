@@ -8,9 +8,9 @@ import { api } from "../lib/api";
 
 const valueProps = [
   {
-    title: "Receipts Bound to Payments",
+    title: "x402-Ready Payment Binding",
     description:
-      "Every decision receipt includes a job/payment reference hash — linking the agent's action to the work it was paid for. One receipt binds decision, proof, and payment into a single verifiable artifact.",
+      "Every decision receipt includes a job/payment reference hash — linking the agent's action to the work it was paid for. x402-ready binding means each receipt is cryptographically tied to a specific payment, ready for autonomous agent commerce.",
   },
   {
     title: "Instant Tamper Detection",

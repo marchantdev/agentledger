@@ -83,8 +83,8 @@ export default function About() {
             },
             {
               icon: LinkIcon,
-              title: "Job/Payment Reference Binding",
-              description: "Each receipt includes a hashed job and payment reference. This cryptographically binds the agent's decision to a specific job — you can't swap receipts between different jobs or claim a different payment was associated with a decision.",
+              title: "x402-Ready Payment Binding",
+              description: "Each receipt includes a hashed job and payment reference (x402-ready). The verifier confirms that this receipt corresponds to this specific payment — you can't swap receipts between jobs or claim a different payment was associated with a decision. When x402 micropayments settle on-chain, this binding becomes the trust anchor for autonomous agent commerce.",
             },
             {
               icon: Zap,
@@ -219,13 +219,13 @@ const verify = await fetch("/api/verify", {
           style={{ backgroundColor: theme.colors.surfaceAlt }}
         >
           <pre style={{ color: theme.colors.textMuted }}>
-{`// Record a new agent decision with optional job/payment reference
+{`// Record a new agent decision (x402-ready binding)
 record_decision(
   agent_id: String,
   action_class: String,
   input_hash: String,
   output_hash: String,
-  job_payment_ref_hash: String,  // links to x402 payment receipt
+  job_payment_ref_hash: String,  // x402-ready: binds decision to payment
 ) -> u64  // returns decision_id
 
 // Query a specific decision

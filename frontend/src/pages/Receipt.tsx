@@ -462,6 +462,31 @@ export default function Receipt() {
           </span>
         </div>
 
+        {decision.jobPaymentRefHash && (
+          <div
+            className="flex items-start gap-3 p-3 rounded-lg text-xs"
+            style={{
+              backgroundColor: "#f59e0b" + "08",
+              borderLeft: `3px solid #f59e0b`,
+            }}
+          >
+            <LinkIcon
+              size={14}
+              style={{ color: "#f59e0b", flexShrink: 0, marginTop: 1 }}
+            />
+            <div>
+              <span className="font-semibold" style={{ color: theme.colors.text }}>
+                x402-Ready Binding
+              </span>
+              <p className="mt-0.5" style={{ color: theme.colors.textMuted }}>
+                This receipt's <code className="font-mono">job_payment_ref_hash</code> binds
+                the agent's decision to a specific payment reference. The verifier confirms
+                this receipt corresponds to this payment — receipts cannot be swapped between jobs.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Collapsible Raw Proof Drawer */}
         <div>
           <button
