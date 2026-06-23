@@ -19,3 +19,9 @@ idea-candidates.json
 winning-thesis.md
 hackathon-requirements.md
 hackathon-landscape.md
+
+# Internal runtime/review artifacts — not for public repo (2026-06-23)
+hackathon_review/
+logs/
+.conversation-context
+.idea-approved
