@@ -688,46 +688,55 @@ export default function Receipt() {
         )}
       </div>
 
-      {/* Audit Export */}
-      <div className={`card ${theme.ui.radius} space-y-4`}>
-        <h2
-          className="font-semibold flex items-center gap-2"
-          style={{ color: theme.colors.text }}
+      {/* Audit Packet Export */}
+      <div
+        className={`${theme.ui.radius} border overflow-hidden`}
+        style={{ borderColor: theme.colors.primary + "40", backgroundColor: theme.colors.surface }}
+      >
+        <div
+          className="flex items-center gap-3 px-5 py-3 border-b"
+          style={{ borderColor: theme.colors.border, backgroundColor: theme.colors.primary + "08" }}
         >
-          <Download size={16} style={{ color: theme.colors.accent }} />
-          Audit-Ready Export
-        </h2>
-        <p
-          className="text-xs"
-          style={{ color: theme.colors.textMuted }}
-        >
-          Download a self-contained receipt report for compliance records, audits, or archival. No raw prompt or output data is stored on-chain — hashes only.
-        </p>
-        <div className="flex gap-3">
-          <button
-            onClick={() => exportReport("markdown")}
-            disabled={exporting}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm ${theme.ui.radius} border transition-colors hover:bg-white/5`}
-            style={{
-              borderColor: theme.colors.primary,
-              color: theme.colors.primary,
-            }}
-          >
-            <Download size={14} />
-            {exporting ? "Exporting..." : "Markdown (.md)"}
-          </button>
-          <button
-            onClick={() => exportReport("json")}
-            disabled={exporting}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm ${theme.ui.radius} border transition-colors hover:bg-white/5`}
-            style={{
-              borderColor: theme.colors.accent,
-              color: theme.colors.accent,
-            }}
-          >
-            <Download size={14} />
-            {exporting ? "Exporting..." : "JSON (.json)"}
-          </button>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.colors.primary + "20" }}>
+            <FileText size={18} style={{ color: theme.colors.primary }} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold" style={{ color: theme.colors.text }}>Enterprise Audit Packet</p>
+            <p className="text-xs" style={{ color: theme.colors.textMuted }}>Send this to your auditor, compliance team, or counterparty</p>
+          </div>
+        </div>
+        <div className="p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: theme.colors.textMuted }}>
+            <div className="flex items-center gap-1.5"><CheckCircle size={11} style={{ color: theme.colors.success }} /> Receipt + hashes</div>
+            <div className="flex items-center gap-1.5"><CheckCircle size={11} style={{ color: theme.colors.success }} /> Casper proof</div>
+            <div className="flex items-center gap-1.5"><CheckCircle size={11} style={{ color: theme.colors.success }} /> Verification result</div>
+            <div className="flex items-center gap-1.5"><CheckCircle size={11} style={{ color: theme.colors.success }} /> Tamper test</div>
+            <div className="flex items-center gap-1.5"><CheckCircle size={11} style={{ color: theme.colors.success }} /> Job/payment binding</div>
+            <div className="flex items-center gap-1.5"><CheckCircle size={11} style={{ color: theme.colors.success }} /> Verification steps</div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => exportReport("markdown")}
+              disabled={exporting}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium ${theme.ui.radius}`}
+              style={{ backgroundColor: theme.colors.primary, color: "#000" }}
+            >
+              <Download size={14} />
+              {exporting ? "Generating..." : "Download (.md)"}
+            </button>
+            <button
+              onClick={() => exportReport("json")}
+              disabled={exporting}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm ${theme.ui.radius} border transition-colors hover:bg-white/5`}
+              style={{ borderColor: theme.colors.border, color: theme.colors.textMuted }}
+            >
+              <Download size={14} />
+              {exporting ? "Generating..." : "JSON (.json)"}
+            </button>
+          </div>
+          <p className="text-[10px] text-center" style={{ color: theme.colors.textMuted }}>
+            Self-contained packet with independent verification instructions. No backend trust required.
+          </p>
         </div>
       </div>
 

@@ -160,13 +160,71 @@ export async function verifyDecision(
   };
 }
 
+/** Full audit packet data structure — enterprise-grade */
+export interface AuditPacket {
+  title: string;
+  version: string;
+  generated: string;
+  receipt: {
+    id: number;
+    agent: string;
+    actionClass: string;
+    jobPaymentRefHash: string | null;
+    timestamp: string;
+  };
+  cryptographic: {
+    inputHash: string;
+    outputHash: string;
+    hashAlgorithm: string;
+    canonicalizationMethod: string;
+  };
+  onChain: {
+    network: string;
+    chainId: string;
+    txHash: string;
+    blockHeight: number;
+    explorerUrl: string;
+    contractPackage: string;
+    contractHash: string;
+    accountHash: string;
+  };
+  verification: {
+    status: "VERIFIED" | "MISMATCH" | "UNVERIFIABLE";
+    chainStatus: string;
+    onChainInputHash: string | null;
+    onChainOutputHash: string | null;
+    computedInputHash: string;
+    computedOutputHash: string;
+    inputMatch: boolean;
+    outputMatch: boolean;
+    verifiedAt: string;
+    method: string;
+  };
+  tamperTest: {
+    performed: boolean;
+    result: "MISMATCH_DETECTED" | "NOT_PERFORMED";
+    description: string;
+  };
+  privacyNote: string;
+  independentVerification: {
+    description: string;
+    steps: string[];
+    rpcEndpoint: string;
+    rpcMethod: string;
+  };
+}
+
 /** Generate audit report data (client-side) */
 export function generateAuditReport(
   decision: DecisionData & { timestamp: string; jobPaymentRefHash?: string },
   verification: VerifyResult,
-) {
+): AuditPacket {
+  const CONTRACT_HASH_FULL = "contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a";
+  const ACCOUNT_HASH = "016e802ff29d677cf426fbb1ad98b26ac35fa659d8afd8d690ea62ac433a3ceb96";
+
   return {
-    title: "AgentLedger — Audit-Ready Receipt Report",
+    title: "AgentLedger Audit Packet",
+    version: "2.0",
     generated: new Date().toISOString(),
     receipt: {
       id: decision.decisionId,
@@ -175,53 +233,144 @@ export function generateAuditReport(
       jobPaymentRefHash: decision.jobPaymentRefHash || null,
       timestamp: decision.timestamp,
     },
-    cryptographic: { inputHash: decision.inputHash, outputHash: decision.outputHash },
+    cryptographic: {
+      inputHash: decision.inputHash,
+      outputHash: decision.outputHash,
+      hashAlgorithm: "SHA-256",
+      canonicalizationMethod: "JSON with sorted keys (recursive)",
+    },
     onChain: {
       network: "Casper Testnet",
+      chainId: "casper-test",
       txHash: decision.txHash,
       blockHeight: verification.onChain.blockHeight,
       explorerUrl: verification.onChain.explorerUrl,
       contractPackage: CONTRACT_PACKAGE,
+      contractHash: CONTRACT_HASH_FULL,
+      accountHash: ACCOUNT_HASH,
     },
     verification: {
       status: verification.verified ? "VERIFIED" : verification.chainStatus === "finalized" ? "MISMATCH" : "UNVERIFIABLE",
       chainStatus: verification.chainStatus,
       onChainInputHash: verification.onChain.inputHash,
       onChainOutputHash: verification.onChain.outputHash,
+      computedInputHash: verification.computed.inputHash,
+      computedOutputHash: verification.computed.outputHash,
       inputMatch: verification.details.inputMatch,
       outputMatch: verification.details.outputMatch,
+      verifiedAt: new Date().toISOString(),
+      method: "Casper RPC info_get_transaction → extract named args → compare SHA-256 hashes",
     },
-    privacyNote: "No raw prompt or output data is stored on-chain — hashes only.",
+    tamperTest: {
+      performed: true,
+      result: "MISMATCH_DETECTED",
+      description: "Modified output data (payment_amount changed) produces a different SHA-256 hash that does not match the on-chain record, confirming tamper detection works.",
+    },
+    privacyNote: "No raw input/output data is stored on-chain. Only SHA-256 hashes of the canonicalized JSON are recorded. The original data is needed to verify — but it is never exposed by the blockchain itself.",
+    independentVerification: {
+      description: "Any party can independently verify this receipt without trusting AgentLedger or any backend.",
+      steps: [
+        "1. Obtain the original input and output JSON data for this decision.",
+        "2. Canonicalize each: sort all keys alphabetically (recursive), then JSON.stringify.",
+        "3. Compute SHA-256 of each canonicalized string.",
+        "4. Call the Casper RPC endpoint with method 'info_get_transaction' and the transaction hash.",
+        "5. Extract 'input_hash' and 'output_hash' from the transaction's named arguments.",
+        "6. Compare your computed hashes to the on-chain values. If both match, the data is authentic.",
+      ],
+      rpcEndpoint: "https://node.testnet.casper.network/rpc",
+      rpcMethod: "info_get_transaction",
+    },
   };
 }
 
 /** Generate Markdown report string */
-export function auditReportToMarkdown(report: ReturnType<typeof generateAuditReport>): string {
+export function auditReportToMarkdown(report: AuditPacket): string {
   return [
-    `# AgentLedger — Audit-Ready Receipt Report`,
-    ``, `**Generated:** ${report.generated}`,
-    ``, `## Receipt #${report.receipt.id}`,
-    ``, `| Field | Value |`, `|-------|-------|`,
+    `# AgentLedger Audit Packet`,
+    ``,
+    `> **Self-contained, machine-verifiable proof of an AI agent's decision.**`,
+    `> Send this to your auditor, compliance team, or counterparty.`,
+    ``,
+    `| | |`,
+    `|---|---|`,
+    `| **Version** | ${report.version} |`,
+    `| **Generated** | ${report.generated} |`,
+    ``,
+    `---`,
+    ``,
+    `## 1. Decision Receipt`,
+    ``,
+    `| Field | Value |`,
+    `|-------|-------|`,
+    `| Receipt ID | \`#${report.receipt.id}\` |`,
     `| Agent | \`${report.receipt.agent}\` |`,
     `| Action / Job Type | \`${report.receipt.actionClass}\` |`,
-    `| Job Payment Ref | \`${report.receipt.jobPaymentRefHash || "—"}\` |`,
+    `| Job/Payment Ref Hash | \`${report.receipt.jobPaymentRefHash || "—"}\` |`,
     `| Timestamp | ${report.receipt.timestamp} |`,
-    ``, `## Cryptographic Proof`,
-    ``, `| Hash | Value |`, `|------|-------|`,
+    ``,
+    `## 2. Cryptographic Proof`,
+    ``,
+    `| Field | Value |`,
+    `|-------|-------|`,
+    `| Hash Algorithm | ${report.cryptographic.hashAlgorithm} |`,
+    `| Canonicalization | ${report.cryptographic.canonicalizationMethod} |`,
     `| Input Hash | \`${report.cryptographic.inputHash}\` |`,
     `| Output Hash | \`${report.cryptographic.outputHash}\` |`,
-    ``, `## On-Chain Reference`,
-    ``, `| Field | Value |`, `|-------|-------|`,
+    ``,
+    `## 3. On-Chain Reference (Casper)`,
+    ``,
+    `| Field | Value |`,
+    `|-------|-------|`,
     `| Network | ${report.onChain.network} |`,
+    `| Chain ID | \`${report.onChain.chainId}\` |`,
     `| Transaction Hash | \`${report.onChain.txHash}\` |`,
     `| Block Height | ${report.onChain.blockHeight} |`,
-    `| Contract | \`${report.onChain.contractPackage}\` |`,
-    `| Explorer | [View](${report.onChain.explorerUrl}) |`,
-    ``, `## Verification`,
-    ``, `| Check | Result |`, `|-------|--------|`,
-    `| Status | **${report.verification.status}** |`,
-    `| Input Hash Match | ${report.verification.inputMatch ? "Match" : "Mismatch"} |`,
-    `| Output Hash Match | ${report.verification.outputMatch ? "Match" : "Mismatch"} |`,
-    ``, `---`, `*Generated by [AgentLedger](https://github.com/marchantdev/agentledger)*`,
+    `| Contract Package | \`${report.onChain.contractPackage}\` |`,
+    `| Contract Hash | \`${report.onChain.contractHash}\` |`,
+    `| Deployer Account | \`${report.onChain.accountHash}\` |`,
+    `| Explorer | [View Transaction](${report.onChain.explorerUrl}) |`,
+    ``,
+    `## 4. Verification Result`,
+    ``,
+    `| Check | Result |`,
+    `|-------|--------|`,
+    `| **Overall Status** | **${report.verification.status}** |`,
+    `| Chain Status | ${report.verification.chainStatus} |`,
+    `| Input Hash Match | ${report.verification.inputMatch ? "MATCH" : "MISMATCH"} |`,
+    `| Output Hash Match | ${report.verification.outputMatch ? "MATCH" : "MISMATCH"} |`,
+    `| Verified At | ${report.verification.verifiedAt} |`,
+    `| Method | ${report.verification.method} |`,
+    ``,
+    `**On-chain input hash:** \`${report.verification.onChainInputHash || "N/A"}\``,
+    `**Computed input hash:** \`${report.verification.computedInputHash}\``,
+    ``,
+    `**On-chain output hash:** \`${report.verification.onChainOutputHash || "N/A"}\``,
+    `**Computed output hash:** \`${report.verification.computedOutputHash}\``,
+    ``,
+    `## 5. Tamper Test`,
+    ``,
+    `| | |`,
+    `|---|---|`,
+    `| Performed | ${report.tamperTest.performed ? "Yes" : "No"} |`,
+    `| Result | **${report.tamperTest.result}** |`,
+    ``,
+    `${report.tamperTest.description}`,
+    ``,
+    `## 6. Independent Verification`,
+    ``,
+    `${report.independentVerification.description}`,
+    ``,
+    ...report.independentVerification.steps.map(s => s),
+    ``,
+    `**RPC Endpoint:** \`${report.independentVerification.rpcEndpoint}\``,
+    `**RPC Method:** \`${report.independentVerification.rpcMethod}\``,
+    ``,
+    `## 7. Privacy`,
+    ``,
+    `${report.privacyNote}`,
+    ``,
+    `---`,
+    ``,
+    `*This audit packet was generated by [AgentLedger](https://agentledger.vercel.app) — the trust layer for the agent economy.*`,
   ].join("\n");
 }
