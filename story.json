@@ -1,0 +1,9 @@
+{
+  "problem": "AI agents execute paid work — trades, payments, decisions — but leave no verifiable proof. When disputes arise, there's nothing to audit.",
+  "why_now": "Pay-per-result AI agents (x402, agent-to-agent payments) are going live in 2026. Every paid agent action needs a receipt.",
+  "product_sentence": "AgentLedger: if an agent gets paid, it leaves a receipt. Tamper-proof decision hashes on Casper.",
+  "demo_aha": "A treasury agent approves a vendor payment on-chain. Then we edit the decision text — verification fails. The ledger never lies.",
+  "target_user": "Agent platform operators and DAOs deploying autonomous agents for paid work. They need settlement-grade proof of what each agent did.",
+  "proof": "Working Odra DecisionRegistry on Casper testnet. Real record_decision transactions with job_payment_ref_hash. Tamper-detection verifier in the UI.",
+  "one_sentence": "If an agent gets paid, it leaves a receipt — tamper-proof, on Casper, verifiable by anyone."
+}

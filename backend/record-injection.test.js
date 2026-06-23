@@ -1,12 +1,14 @@
 /**
- * record-injection.test.js — Regression tests for /api/record injection protection
+ * record-injection.test.js — Security regression tests for /api/workbench/record
  *
- * Verifies that:
- * 1. Injection payloads in agentId/actionClass/jobPaymentRefHash get 400
- * 2. No side-effect (no shell execution, no new decisions created)
- * 3. The arg-quoting fix stores clean (unquoted) values
+ * After removing /api/record (user-controlled input), these tests verify:
+ * 1. Only valid fixed scenarios (vendor_payment, defi_swap, risk_alert) are accepted
+ * 2. Invalid/injection scenarios get 400
+ * 3. No user-controlled strings reach casper-client
+ * 4. Auth is required (requireSecret)
+ * 5. Preset data is used exactly — no user payload passes through
  *
- * Run: node record-injection.test.js
+ * Run: NODE_ENV=test TEST_MODE=1 BACKEND_SECRET=test-secret-12345 node record-injection.test.js
  */
 
 const assert = require("assert");
@@ -33,15 +35,20 @@ function test(name, fn) {
 
 const PORT = process.env.TEST_PORT || 3099;
 const BASE = `http://127.0.0.1:${PORT}`;
+const SECRET = process.env.BACKEND_SECRET || "test-secret-12345";
 
-function postJSON(path, body) {
+function postJSON(path, body, headers = {}) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
     const req = http.request(
       `${BASE}${path}`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(data) },
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(data),
+          ...headers,
+        },
       },
       (res) => {
         let chunks = "";
@@ -77,39 +84,33 @@ function getJSON(path) {
   });
 }
 
-// ─── Injection payloads ─────────────────────────────────────────────────────
+// ─── Injection payloads (as scenario names) ─────────────────────────────────
 
-const INJECTION_PAYLOADS = [
+const INJECTION_SCENARIOS = [
   { label: "shell command substitution", value: "$(whoami)" },
   { label: "backtick injection", value: "`id`" },
   { label: "semicolon chaining", value: "legit; rm -rf /" },
   { label: "pipe injection", value: "legit | cat /etc/passwd" },
   { label: "newline injection", value: "legit\nid" },
-  { label: "single-quote escape", value: "legit'; id; echo '" },
-  { label: "double-quote escape", value: 'legit"; id; echo "' },
-  { label: "ampersand background", value: "legit & id" },
   { label: "null byte", value: "legit\x00id" },
-  { label: "curly brace expansion", value: "{cat,/etc/passwd}" },
+  { label: "path traversal", value: "../../../etc/passwd" },
+  { label: "prototype pollution", value: "__proto__" },
+  { label: "constructor pollution", value: "constructor" },
 ];
 
 // ─── Boot a test-only server instance ───────────────────────────────────────
 
-// We dynamically load the Express app module to test it in isolation.
-// To avoid actually calling casper-client, we monkey-patch execFileSync.
-const Module = require("module");
 const child_process = require("child_process");
 const originalExecFileSync = child_process.execFileSync;
-let execFileCalls = []; // records all calls for side-effect auditing
+let execFileCalls = [];
 
 function startTestServer() {
   return new Promise((resolve) => {
-    // Bypass rate limiter and session cap in tests
     process.env.TEST_MODE = "1";
+    process.env.NODE_ENV = "test";
 
-    // Patch execFileSync to capture calls without running casper-client
     child_process.execFileSync = function (cmd, args, opts) {
       execFileCalls.push({ cmd, args: [...args] });
-      // Return a fake successful Casper tx response
       return Buffer.from(JSON.stringify({
         result: {
           transaction_hash: { Version1: "test-tx-" + crypto.randomBytes(8).toString("hex") },
@@ -117,19 +118,13 @@ function startTestServer() {
       }));
     };
 
-    // Set port and load server
     process.env.PORT = PORT;
-    // Clear require cache so server.js loads fresh
     const serverPath = require.resolve("./server.js");
     delete require.cache[serverPath];
 
-    // Suppress console.log from server startup
     const origLog = console.log;
     console.log = () => {};
-
-    const app = require("./server.js");
-
-    // Restore console.log after a tick (server logs on listen)
+    require("./server.js");
     setTimeout(() => {
       console.log = origLog;
       resolve();
@@ -140,114 +135,114 @@ function startTestServer() {
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 async function run() {
-  console.log("\nrecord-injection.test.js — /api/record injection regression tests\n");
+  console.log("\nrecord-injection.test.js — /api/workbench/record security regression tests\n");
 
-  // Get baseline decision count
   const baseline = await getJSON("/api/stats");
   const baselineCount = baseline.body.totalDecisions;
 
-  // ─── Injection tests: each payload in agentId should yield 400 ────────
-  for (const { label, value } of INJECTION_PAYLOADS) {
-    const callsBefore = execFileCalls.length;
+  // ─── 1. Auth required: no secret → 401 ────────────────────────────────
+  await test("AUTH: request without secret gets 401", async () => {
+    const res = await postJSON("/api/workbench/record", { scenario: "vendor_payment" });
+    assert.strictEqual(res.status, 401, `Expected 401, got ${res.status}`);
+  });
 
-    await test(`REJECT agentId injection: ${label}`, async () => {
-      const res = await postJSON("/api/record", {
-        agentId: value,
-        actionClass: "test_action",
-        inputData: { x: 1 },
-        outputData: { y: 2 },
+  // ─── 2. Auth required: wrong secret → 401 ─────────────────────────────
+  await test("AUTH: request with wrong secret gets 401", async () => {
+    const res = await postJSON("/api/workbench/record", { scenario: "vendor_payment" }, {
+      "X-Backend-Secret": "wrong-secret",
+    });
+    assert.strictEqual(res.status, 401, `Expected 401, got ${res.status}`);
+  });
+
+  // ─── 3. Injection scenarios → 400 ─────────────────────────────────────
+  for (const { label, value } of INJECTION_SCENARIOS) {
+    const callsBefore = execFileCalls.length;
+    await test(`REJECT scenario injection: ${label}`, async () => {
+      const res = await postJSON("/api/workbench/record", { scenario: value }, {
+        "X-Backend-Secret": SECRET,
       });
-      assert.strictEqual(res.status, 400, `Expected 400 for injection payload, got ${res.status}`);
-      assert.ok(res.body.error, "Response should contain error field");
-      // Verify no shell call was made
-      assert.strictEqual(
-        execFileCalls.length,
-        callsBefore,
-        "execFileSync must NOT be called for rejected input"
-      );
+      assert.strictEqual(res.status, 400, `Expected 400 for injection scenario, got ${res.status}`);
+      assert.strictEqual(execFileCalls.length, callsBefore,
+        "execFileSync must NOT be called for invalid scenario");
     });
   }
 
-  // ─── Injection in actionClass ─────────────────────────────────────────
-  await test("REJECT actionClass injection: shell command substitution", async () => {
-    const callsBefore = execFileCalls.length;
-    const res = await postJSON("/api/record", {
-      agentId: "clean-agent",
-      actionClass: "$(rm -rf /)",
-      inputData: { x: 1 },
-      outputData: { y: 2 },
+  // ─── 4. Valid scenarios succeed ────────────────────────────────────────
+  const validScenarios = ["vendor_payment", "defi_swap", "risk_alert"];
+  for (const scenario of validScenarios) {
+    await test(`ACCEPT valid scenario: ${scenario}`, async () => {
+      const res = await postJSON("/api/workbench/record", { scenario }, {
+        "X-Backend-Secret": SECRET,
+      });
+      assert.strictEqual(res.status, 200, `Expected 200, got ${res.status}`);
+      assert.ok(res.body.success, "Response should have success=true");
+      assert.ok(res.body.txHash, "Response should have txHash");
     });
-    assert.strictEqual(res.status, 400, `Expected 400, got ${res.status}`);
-    assert.strictEqual(execFileCalls.length, callsBefore, "No shell call for bad actionClass");
+  }
+
+  // ─── 5. Preset data used — no user strings in casper-client args ──────
+  await test("PRESET-ONLY: casper-client args contain only preset agentId, not user input", async () => {
+    // Filter to only put-transaction calls (exclude account-address balance checks)
+    const txCalls = execFileCalls.filter(c => c.args[0] === "put-transaction");
+    // Should have exactly 3 from the valid scenario tests above
+    assert.ok(txCalls.length >= 3, `Expected at least 3 put-transaction calls, got ${txCalls.length}`);
+    const last3 = txCalls.slice(-3);
+    const expectedAgents = ["treasury-agent-01", "trading-agent-alpha", "risk-monitor-eu"];
+    for (let i = 0; i < 3; i++) {
+      const agentArg = last3[i].args.find(a => a.startsWith("agent_id:string="));
+      assert.ok(agentArg, "Should have agent_id session-arg");
+      assert.strictEqual(agentArg, `agent_id:string=${expectedAgents[i]}`,
+        `Expected preset agent ${expectedAgents[i]}, got: ${agentArg}`);
+    }
   });
 
-  // ─── Injection in jobPaymentRefHash ───────────────────────────────────
-  await test("REJECT jobPaymentRefHash injection: pipe injection", async () => {
-    const callsBefore = execFileCalls.length;
-    const res = await postJSON("/api/record", {
-      agentId: "clean-agent",
-      actionClass: "payment_check",
-      inputData: { x: 1 },
-      outputData: { y: 2 },
-      jobPaymentRefHash: "legit | cat /etc/passwd",
-    });
-    assert.strictEqual(res.status, 400, `Expected 400, got ${res.status}`);
-    assert.strictEqual(execFileCalls.length, callsBefore, "No shell call for bad jobRef");
-  });
-
-  // ─── Verify no decisions were created by injection attempts ───────────
-  await test("NO SIDE-EFFECT: injection attempts created zero new decisions", async () => {
-    const after = await getJSON("/api/stats");
-    assert.strictEqual(
-      after.body.totalDecisions,
-      baselineCount,
-      `Expected ${baselineCount} decisions, got ${after.body.totalDecisions} — injection created a decision!`
-    );
-  });
-
-  // ─── Clean input: valid record stores unquoted agentId ────────────────
-  await test("CLEAN VALUE: valid record stores unquoted agentId in execFileSync args", async () => {
-    const callsBefore = execFileCalls.length;
-    const res = await postJSON("/api/record", {
-      agentId: "my-agent-v2",
-      actionClass: "vendor_payment",
-      inputData: { amount: 100 },
-      outputData: { approved: true },
-    });
-    assert.strictEqual(res.status, 200, `Expected 200, got ${res.status}`);
-    assert.ok(res.body.success, "Response should have success=true");
-
-    // Check the execFileSync call args — agentId must NOT have quotes
-    const lastCall = execFileCalls[execFileCalls.length - 1];
-    assert.ok(lastCall, "execFileSync should have been called");
-
-    const agentArg = lastCall.args.find((a) => a.startsWith("agent_id:string="));
-    assert.ok(agentArg, "Should have agent_id session-arg");
-    assert.strictEqual(
-      agentArg,
-      "agent_id:string=my-agent-v2",
-      `agentId arg must be unquoted, got: ${agentArg}`
-    );
-    // Verify NO single quotes around the value
-    assert.ok(
-      !agentArg.includes("'"),
-      `agentId arg must not contain literal quotes, got: ${agentArg}`
-    );
-  });
-
-  // ─── Missing fields → 400 ────────────────────────────────────────────
-  await test("REJECT missing required fields", async () => {
+  // ─── 6. /api/record endpoint removed ───────────────────────────────────
+  await test("REMOVED: /api/record returns 404", async () => {
     const res = await postJSON("/api/record", {
       agentId: "test-agent",
-      // missing actionClass, inputData, outputData
+      actionClass: "test_action",
+      inputData: { x: 1 },
+      outputData: { y: 2 },
+    }, { "X-Backend-Secret": SECRET });
+    assert.strictEqual(res.status, 404, `Expected 404 for removed endpoint, got ${res.status}`);
+  });
+
+  // ─── 7. Missing scenario → 400 ────────────────────────────────────────
+  await test("REJECT missing scenario field", async () => {
+    const res = await postJSON("/api/workbench/record", {}, {
+      "X-Backend-Secret": SECRET,
     });
-    assert.strictEqual(res.status, 400, `Expected 400 for missing fields, got ${res.status}`);
+    assert.strictEqual(res.status, 400, `Expected 400 for missing scenario, got ${res.status}`);
+  });
+
+  // ─── 8. Extra fields ignored — only scenario used ──────────────────────
+  await test("IGNORE extra fields: only scenario matters", async () => {
+    const callsBefore = execFileCalls.length;
+    const res = await postJSON("/api/workbench/record", {
+      scenario: "vendor_payment",
+      agentId: "evil-agent",
+      inputData: { amount: 999999 },
+      outputData: { decision: "STEAL" },
+    }, { "X-Backend-Secret": SECRET });
+    assert.strictEqual(res.status, 200, `Expected 200, got ${res.status}`);
+    // Verify preset agent was used, not the injected one
+    const lastCall = execFileCalls[execFileCalls.length - 1];
+    const agentArg = lastCall.args.find(a => a.startsWith("agent_id:string="));
+    assert.strictEqual(agentArg, "agent_id:string=treasury-agent-01",
+      "Must use preset agentId, not user-supplied 'evil-agent'");
+  });
+
+  // ─── 9. No spurious decisions from injection attempts ──────────────────
+  await test("SIDE-EFFECTS: only valid scenarios created decisions", async () => {
+    const after = await getJSON("/api/stats");
+    // 3 valid scenario tests + 1 extra-fields test = 4 new decisions
+    const expected = baselineCount + 4;
+    assert.strictEqual(after.body.totalDecisions, expected,
+      `Expected ${expected} decisions (baseline ${baselineCount} + 4), got ${after.body.totalDecisions}`);
   });
 
   // ─── Summary ──────────────────────────────────────────────────────────
   console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
-
-  // Restore original execFileSync
   child_process.execFileSync = originalExecFileSync;
 
   if (failed > 0) {

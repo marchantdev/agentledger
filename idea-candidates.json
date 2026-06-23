@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "hackathon": "Casper Agentic Buildathon 2026",
+  "generated": "2026-06-18",
+  "recommended_winner": "agentledger",
+  "candidates": [
+    {
+      "id": "agentledger",
+      "name": "AgentLedger - Verifiable Agent Decision Attestation",
+      "depends_on_named_primitive": true,
+      "primitives": [
+        {
+          "name": "Odra Framework",
+          "docs_url": "https://odra.dev/docs/",
+          "status_quote": "Odra 2.8.0 released June 11 2026, actively maintained with llms.txt AI support",
+          "devnet_available": true
+        },
+        {
+          "name": "x402 Protocol",
+          "docs_url": "https://github.com/make-software/casper-x402",
+          "status_quote": "Production on mainnet, free facilitator for hackathon, Go and TypeScript SDKs",
+          "devnet_available": true
+        },
+        {
+          "name": "Casper MCP Server",
+          "docs_url": "https://github.com/msanlisavas/casper-mcp",
+          "status_quote": "Version 3.0.0, 82 tools for blockchain queries, supports stdio and HTTP",
+          "devnet_available": true
+        }
+      ],
+      "copilot_queries": [
+        "agent decision attestation on-chain blockchain audit trail",
+        "AI agent accountability verifiable proof smart contract",
+        "EU AI Act agent explainability requirements blockchain"
+      ],
+      "accelerator_only": {
+        "query": "agent attestation audit trail Casper hackathon",
+        "matches": [],
+        "zero_match_note": "No existing projects on Casper or DoraHacks address agent decision attestation or on-chain audit trails for AI agents"
+      },
+      "winners_only": {
+        "query": "previous Casper hackathon winners agent accountability",
+        "matches": [
+          {
+            "slug": "CasPay - recurring payments protocol",
+            "url": "https://www.casper.network/news/casper-x-space-recap-feb-5-2026"
+          },
+          {
+            "slug": "Shroud Protocol - privacy mixer with ZK",
+            "url": "https://www.casper.network/news/casper-x-space-recap-feb-5-2026"
+          }
+        ]
+      },
+      "comparable_matches": [
+        {
+          "slug": "EAS (Ethereum Attestation Service)",
+          "url": "https://attest.org/",
+          "differentiation": "EAS attests arbitrary data schemas but not specifically agent decisions. AgentLedger is purpose-built for AI agent accountability with structured decision proofs."
+        },
+        {
+          "slug": "Chainlink DECO (oracle attestation)",
+          "url": "https://chain.link/deco",
+          "differentiation": "DECO attests off-chain data into oracles. AgentLedger attests agent DECISIONS not data feeds. Different trust model - proving reasoning not facts."
+        },
+        {
+          "slug": "Lit Protocol (decentralized signing)",
+          "url": "https://litprotocol.com/",
+          "differentiation": "Lit provides programmable signing and encryption. AgentLedger records decision audit trails. Lit could be a signing layer under AgentLedger but does not provide attestation semantics."
+        }
+      ],
+      "weakening_source": {
+        "url": "https://vitalik.eth.limo/general/2024/01/30/cryptoai.html",
+        "summary": "Vitalik argues most crypto+AI intersections are overhyped. On-chain attestation for AI decisions may be premature since the agent economy is still nascent."
+      },
+      "biggest_reason_not_to_build": "The AI agent economy is nascent with limited real deployments. Building attestation infrastructure for a market that may not exist in production scale yet is a timing risk."
+    },
+    {
+      "id": "agentpay",
+      "name": "AgentPay - Pay-Per-Result AI Services",
+      "depends_on_named_primitive": true,
+      "primitives": [
+        {
+          "name": "x402 Protocol",
+          "docs_url": "https://github.com/make-software/casper-x402",
+          "status_quote": "Production on mainnet, escrow-capable via CEP-18 tokens, TypeScript SDK available",
+          "devnet_available": true
+        },
+        {
+          "name": "Odra Framework",
+          "docs_url": "https://odra.dev/docs/",
+          "status_quote": "Odra 2.8.0 supports state machines and token handling for escrow patterns",
+          "devnet_available": true
+        }
+      ],
+      "copilot_queries": [
+        "pay per result AI service escrow blockchain",
+        "outcome based pricing AI agent micropayment"
+      ],
+      "accelerator_only": {
+        "query": "pay per result AI escrow Casper DoraHacks",
+        "matches": [],
+        "zero_match_note": "No existing pay-per-result AI service with on-chain escrow found on Casper ecosystem or DoraHacks submissions"
+      },
+      "winners_only": {
+        "query": "previous hackathon winners pay per result AI",
+        "matches": [
+          {
+            "slug": "AgentPayOps from Arc AI hackathon",
+            "url": "https://dorahacks.io/hackathon/casper-agentic-buildathon"
+          }
+        ]
+      },
+      "comparable_matches": [
+        {
+          "slug": "Morpheus AI Network",
+          "url": "https://mor.org/",
+          "differentiation": "Morpheus provides decentralized compute marketplace. AgentPay focuses on result-based payment not compute time - pay for outcomes not resources."
+        },
+        {
+          "slug": "Bittensor (AI inference marketplace)",
+          "url": "https://bittensor.com/",
+          "differentiation": "Bittensor rewards AI model quality via subnet mining. AgentPay is user-facing escrow for individual tasks - different market layer."
+        },
+        {
+          "slug": "Ritual (on-chain AI inference)",
+          "url": "https://ritual.net/",
+          "differentiation": "Ritual verifies AI inference on-chain computationally. AgentPay verifies USER SATISFACTION with results. Human approval loop is the differentiator."
+        }
+      ],
+      "weakening_source": {
+        "url": "https://a16zcrypto.com/posts/article/crypto-ai-intersection/",
+        "summary": "Quality verification for AI outputs is inherently subjective. On-chain escrow cannot resolve disputes about output quality without an oracle or arbitration layer."
+      },
+      "biggest_reason_not_to_build": "Subjective quality assessment makes escrow disputes unresolvable on-chain without costly arbitration. Users can always reject results unfairly, creating adverse selection."
+    },
+    {
+      "id": "compliagent",
+      "name": "CompliAgent - Compliance-First Agent for Regulated Operations",
+      "depends_on_named_primitive": true,
+      "primitives": [
+        {
+          "name": "Odra Framework",
+          "docs_url": "https://odra.dev/docs/",
+          "status_quote": "Odra supports conditional logic and access control patterns needed for whitelist and compliance checks",
+          "devnet_available": true
+        }
+      ],
+      "copilot_queries": [
+        "compliance aware AI agent KYC blockchain regulation",
+        "regulated asset transfer whitelist smart contract Casper"
+      ],
+      "accelerator_only": {
+        "query": "compliance agent regulated operations Casper blockchain",
+        "matches": [],
+        "zero_match_note": "No compliance-focused agent projects found in Casper ecosystem or hackathon submissions. This is a complete gap."
+      },
+      "winners_only": {
+        "query": "previous hackathon compliance regulation blockchain agent",
+        "matches": [],
+        "zero_match_note": "No previous Casper or crypto hackathon winners focused specifically on compliance-aware agent operations"
+      },
+      "comparable_matches": [
+        {
+          "slug": "Chainalysis KYT",
+          "url": "https://www.chainalysis.com/kyt/",
+          "differentiation": "Chainalysis monitors transactions after execution. CompliAgent checks compliance BEFORE execution, preventing violations rather than detecting them."
+        },
+        {
+          "slug": "Securitize (regulated security tokens)",
+          "url": "https://securitize.io/",
+          "differentiation": "Securitize tokenizes regulated assets with compliance built in. CompliAgent makes AI AGENTS comply - the agent layer not the token layer."
+        },
+        {
+          "slug": "Tokeny (ERC-3643 security tokens)",
+          "url": "https://tokeny.com/",
+          "differentiation": "Tokeny implements ERC-3643 token compliance. CompliAgent extends this to autonomous agent operations - agents checking compliance before acting."
+        }
+      ],
+      "weakening_source": {
+        "url": "https://www.coindesk.com/learn/what-is-mica-the-eus-landmark-crypto-regulation/",
+        "summary": "MiCA compliance requirements are still being interpreted. Building compliance tooling for unclear regulations risks building the wrong checks entirely."
+      },
+      "biggest_reason_not_to_build": "Regulatory requirements for AI agents are undefined. Building compliance checks without clear regulatory standards means guessing what rules to enforce. Risk of complete irrelevance."
+    },
+    {
+      "id": "paygate",
+      "name": "PayGate - x402 Agent Service Marketplace",
+      "depends_on_named_primitive": true,
+      "primitives": [
+        {
+          "name": "x402 Protocol",
+          "docs_url": "https://github.com/make-software/casper-x402",
+          "status_quote": "Production mainnet, free facilitator for hackathon, supports exact payment scheme with CEP-18 tokens",
+          "devnet_available": true
+        }
+      ],
+      "copilot_queries": [
+        "AI agent marketplace service discovery x402 micropayment",
+        "agent to agent API marketplace blockchain registry"
+      ],
+      "accelerator_only": {
+        "query": "agent API marketplace x402 Casper ecosystem",
+        "matches": [],
+        "zero_match_note": "No agent service marketplace exists in Casper ecosystem. CSPR.trade provides DEX but not general agent service registry."
+      },
+      "winners_only": {
+        "query": "previous hackathon agent marketplace service discovery",
+        "matches": [
+          {
+            "slug": "CasPay payments protocol 1st place",
+            "url": "https://www.casper.network/news/casper-x-space-recap-feb-5-2026"
+          }
+        ]
+      },
+      "comparable_matches": [
+        {
+          "slug": "Akash Network",
+          "url": "https://akash.network/",
+          "differentiation": "Akash provides compute marketplace for containers. PayGate provides API marketplace for AI agent services - higher abstraction, per-request pricing."
+        },
+        {
+          "slug": "Ocean Protocol",
+          "url": "https://oceanprotocol.com/",
+          "differentiation": "Ocean trades datasets. PayGate trades agent API services - live computation not static data. Different consumption model."
+        },
+        {
+          "slug": "SingularityNET",
+          "url": "https://singularitynet.io/",
+          "differentiation": "SingularityNET is Ethereum-based AI marketplace since 2017. PayGate uses x402 HTTP-native payments on Casper - simpler integration model."
+        }
+      ],
+      "weakening_source": {
+        "url": "https://singularitynet.io/",
+        "summary": "SingularityNET has existed since 2017 with similar marketplace vision and struggled with adoption. Agent service marketplaces may be solutions looking for problems."
+      },
+      "biggest_reason_not_to_build": "Agent service marketplaces have been tried before (SingularityNET since 2017) with limited adoption. Building supply infrastructure without demand is a classic chicken-and-egg problem."
+    },
+    {
+      "id": "agentguard",
+      "name": "AgentGuard - Smart Contract Security Auditor",
+      "depends_on_named_primitive": false,
+      "primitives": [],
+      "copilot_queries": [
+        "AI smart contract security auditor automated detection",
+        "Odra Rust smart contract audit tool blockchain"
+      ],
+      "accelerator_only": {
+        "query": "smart contract auditor agent Casper Odra",
+        "matches": [],
+        "zero_match_note": "No automated audit tools exist specifically for Odra/Casper smart contracts. Solidity tools do not apply to Rust/WASM."
+      },
+      "winners_only": {
+        "query": "hackathon winners smart contract security audit tool",
+        "matches": [],
+        "zero_match_note": "Security audit tools rarely win hackathons as they are utilities not products. No precedent for this category winning."
+      },
+      "comparable_matches": [
+        {
+          "slug": "Slither (Solidity static analysis)",
+          "url": "https://github.com/crytic/slither",
+          "differentiation": "Slither is Solidity-only. AgentGuard would target Odra/Rust on Casper - different language, different patterns, different ecosystem entirely."
+        },
+        {
+          "slug": "Mythril (EVM bytecode analysis)",
+          "url": "https://github.com/Consensys/mythril",
+          "differentiation": "Mythril analyzes EVM bytecode. Odra compiles to WASM which is a completely different target with different tooling requirements."
+        },
+        {
+          "slug": "Aderyn (Solidity audit tool)",
+          "url": "https://github.com/Cyfrin/aderyn",
+          "differentiation": "Aderyn targets Solidity. AgentGuard targets Rust/Odra which has different issue classes like ownership bugs and unsafe blocks."
+        }
+      ],
+      "weakening_source": {
+        "url": "https://github.com/niccolovollaro/odra-contracts",
+        "summary": "The Odra ecosystem has very few deployed contracts. Building an audit tool for an ecosystem with perhaps a few dozen contracts means a tiny addressable market."
+      },
+      "biggest_reason_not_to_build": "The Casper Odra ecosystem has very few smart contracts deployed. Audit tooling for dozens of contracts when Solidity tools serve millions makes this a niche tool with no meaningful market."
+    },
+    {
+      "id": "agentdao",
+      "name": "AgentDAO - Autonomous Agent Collective Governance",
+      "depends_on_named_primitive": false,
+      "primitives": [],
+      "copilot_queries": [
+        "autonomous agent DAO collective governance blockchain",
+        "multi-agent voting decision system smart contract"
+      ],
+      "accelerator_only": {
+        "query": "agent DAO autonomous governance Casper hackathon",
+        "matches": [],
+        "zero_match_note": "No agent-DAO projects found in Casper ecosystem or hackathon submissions. The concept is theoretical with no implementations."
+      },
+      "winners_only": {
+        "query": "hackathon winners agent DAO autonomous governance",
+        "matches": [],
+        "zero_match_note": "No hackathon winners have built agent-governed DAOs. Regular DAO tooling wins occasionally but agent-DAOs have zero precedent."
+      },
+      "comparable_matches": [
+        {
+          "slug": "Aragon (DAO framework)",
+          "url": "https://aragon.org/",
+          "differentiation": "Aragon provides DAO tooling for human governance. AgentDAO extends governance to autonomous AI agents which is a fundamentally different participant model."
+        },
+        {
+          "slug": "Snapshot (off-chain voting)",
+          "url": "https://snapshot.org/",
+          "differentiation": "Snapshot enables human voting off-chain. AgentDAO enables agent voting with automated on-chain execution. Agents both propose and execute."
+        },
+        {
+          "slug": "AI Arena (competitive AI agents)",
+          "url": "https://aiarena.io/",
+          "differentiation": "AI Arena pits agents against each other competitively. AgentDAO makes agents cooperate collectively. Competition vs cooperation model."
+        }
+      ],
+      "weakening_source": {
+        "url": "https://vitalik.eth.limo/general/2024/01/30/cryptoai.html",
+        "summary": "Multi-agent governance assumes agents have divergent preferences worth voting on. Current AI agents are tools, not autonomous entities with preferences."
+      },
+      "biggest_reason_not_to_build": "Agent governance assumes agents have preferences worth aggregating. Current AI agents are tools executing instructions, not autonomous entities needing collective decision-making."
+    }
+  ]
+}

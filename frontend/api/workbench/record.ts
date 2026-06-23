@@ -15,7 +15,7 @@
  * - Graceful degradation (any failure -> seeded receipt, never visible error)
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://89.167.74.253:3001";
+const BACKEND_URL = process.env.BACKEND_URL || "";
 const BACKEND_SECRET = process.env.BACKEND_SECRET || "";
 // NOTE: If BACKEND_SECRET is empty, backend will reject all write requests (fail-closed).
 // Set BACKEND_SECRET in Vercel environment variables before enabling live recording.
@@ -37,7 +37,7 @@ const rateLimits = new Map<string, { count: number; resetAt: number }>();
 const sessionCounts = new Map<string, number>();
 
 function getCorsHeaders(origin: string | null) {
-  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o.replace(/\/$/, "")));
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin);
   return {
     "Access-Control-Allow-Origin": allowed ? origin! : ALLOWED_ORIGINS[0],
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -101,6 +101,17 @@ export default async function handler(req: Request) {
 
   if (req.method !== "POST") {
     return errorResponse(405, "Method not allowed", "Use POST", origin);
+  }
+
+  // Fail-closed: BACKEND_URL must be configured (no hardcoded IP fallback)
+  if (!BACKEND_URL) {
+    const body = await req.json().catch(() => ({}));
+    const receipt = fallbackReceipt((body as any).scenario || "vendor_payment");
+    receipt.fallbackReason = "Backend not configured. Showing seeded receipt.";
+    return new Response(JSON.stringify(receipt), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 
   // Kill switch
@@ -213,7 +224,7 @@ export default async function handler(req: Request) {
   } catch (err: any) {
     // Network/timeout error -> graceful degradation
     const receipt = fallbackReceipt(scenario);
-    receipt.fallbackReason = `Backend timeout or network error: ${err.message}`;
+    receipt.fallbackReason = "Backend temporarily unavailable. Showing seeded receipt.";
     return new Response(JSON.stringify(receipt), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

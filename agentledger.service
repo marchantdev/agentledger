@@ -1,0 +1,15 @@
+[Unit]
+Description=AgentLedger Backend + Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+User=ai
+WorkingDirectory=/opt/autonomous-ai/hackathons/casper
+ExecStart=/opt/autonomous-ai/hackathons/casper/start-tunnel.sh
+Restart=always
+RestartSec=10
+Environment=PORT=3001
+
+[Install]
+WantedBy=multi-user.target
