@@ -40,19 +40,24 @@ Every decision includes a visible **agent policy trace** — the deterministic r
 
 ```
 ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────────────┐
-│   React Frontend │────▶│  Vercel Edge Fn   │────▶│  Casper Testnet (Odra)   │
-│   (Vite + TS)    │     │  /api/rpc proxy   │     │  DecisionRegistry        │
-│                  │     │  (CORS bypass)    │     │                          │
-│  Workbench       │     └──────────────────┘     │  record_decision()       │
-│  Dispute Demo    │                               │  get_decision()          │
-│  Verify Page     │  Client-side SHA-256 hashing  │  get_total_decisions()   │
-│  Receipt/Export  │  Static decisions.json         │  get_agent_decision_count│
-└──────────────────┘                               └──────────────────────────┘
+│   React Frontend │────▶│  Vercel Proxy     │────▶│  Backend (Express)       │
+│   (Vite + TS)    │     │  /api/rpc         │     │  /api/workbench/record   │
+│                  │     │  /api/workbench/* │     │  casper-client CLI       │
+│  Workbench       │     └──────────────────┘     │  (testnet key on server) │
+│  Dispute Demo    │                               └──────────┬───────────────┘
+│  Verify Page     │  Client-side SHA-256 hashing              │
+│  Receipt/Export  │  Static decisions.json         ┌──────────▼───────────────┐
+└──────────────────┘                               │  Casper Testnet (Odra)   │
+                                                    │  DecisionRegistry        │
+                                                    │  record_decision()       │
+                                                    │  get_decision()          │
+                                                    └──────────────────────────┘
 ```
 
-> **Note:** The frontend runs fully static on Vercel. Verification calls Casper RPC
-> directly via a thin Edge Function proxy (CORS). No backend server required for
-> verification — the on-chain data is the source of truth.
+> **Note:** Verification is fully client-side — the frontend recomputes SHA-256 hashes
+> and compares against Casper RPC transaction args directly. Recording new decisions
+> goes through the backend (testnet key never leaves the server). The backend uses
+> fixed scenarios only — no user-controlled strings reach the signer.
 
 ### On-Chain Contract
 
@@ -180,25 +185,23 @@ cargo odra build
 
 ## Quick Integration (Node.js)
 
-Record an agent decision in ~10 lines:
+Record an agent decision via the Agent Workbench API:
 
 ```js
-const res = await fetch("http://localhost:3001/api/record", {
+// Run a preset scenario (vendor_payment, defi_swap, risk_alert)
+const res = await fetch("http://localhost:3001/api/workbench/record", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    agentId: "my-billing-agent",
-    actionClass: "invoice_approval",
-    inputData: { invoice_id: "INV-2026-0042", vendor: "Acme Corp", amount: 1200 },
-    outputData: { decision: "APPROVED", reason: "Within budget", confidence: 0.95 },
-    jobPaymentRefHash: "job-ref-abc123",
-  }),
+  headers: {
+    "Content-Type": "application/json",
+    "x-backend-secret": process.env.BACKEND_SECRET,
+  },
+  body: JSON.stringify({ scenario: "vendor_payment" }),
 });
-const { txHash, explorerUrl } = await res.json();
+const { decision, txHash, explorerUrl } = await res.json();
 console.log(`Receipt on-chain: ${explorerUrl}`);
 ```
 
-See [`examples/node-agent/record.mjs`](examples/node-agent/record.mjs) for a complete runnable example.
+The Workbench API uses fixed scenarios with preset agent data — no user-controlled strings reach the signer. See [`examples/node-agent/record.mjs`](examples/node-agent/record.mjs) for a complete runnable example.
 
 ## Why Casper
 
