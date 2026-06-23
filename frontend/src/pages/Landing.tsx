@@ -48,8 +48,8 @@ export default function Landing() {
           title="If an agent gets paid,"
           highlight="it leaves a receipt."
           subtitle="When AI agents approve payments, execute trades, and manage capital autonomously — who proves what happened? AgentLedger records every decision on Casper's blockchain. Verifiable receipts. Instant tamper detection. Enterprise-grade audit trails."
-          primaryCta={{ label: "See a Dispute Resolved", to: "/dispute" }}
-          secondaryCta={{ label: "Try Verification", to: "/verify" }}
+          primaryCta={{ label: "See the Full Flow", to: "/job-flow" }}
+          secondaryCta={{ label: "Try Dispute Demo", to: "/dispute" }}
         />
       )}
 

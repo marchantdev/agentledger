@@ -57,10 +57,10 @@ export const theme = {
 
   navLinks: [
     { label: "Dashboard", path: "/dashboard" },
+    { label: "Job Flow", path: "/job-flow" },
     { label: "Workbench", path: "/workbench" },
     { label: "Verify", path: "/verify" },
     { label: "Dispute Demo", path: "/dispute" },
-    { label: "Record", path: "/record" },
     { label: "Docs", path: "/about" },
   ],
 };
