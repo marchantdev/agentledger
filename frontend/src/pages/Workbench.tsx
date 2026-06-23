@@ -510,7 +510,8 @@ function AgentRunPanel({
                   backgroundColor: step.status === "pass" ? theme.colors.success + "08" :
                     step.status === "running" ? theme.colors.primary + "08" :
                     "transparent",
-                  ringColor: step.status === "running" ? theme.colors.primary : undefined,
+                  outlineColor: step.status === "running" ? theme.colors.primary : undefined,
+                  ["--tw-ring-color" as string]: step.status === "running" ? theme.colors.primary : undefined,
                 }}
               >
                 <div className="flex-shrink-0 mt-0.5">
