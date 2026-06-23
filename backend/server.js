@@ -9,7 +9,7 @@ const app = express();
 
 // --- SAFEGUARD 1: RECORDING_ENABLED kill-switch ---
 // Set RECORDING_ENABLED=false in env to disable all write operations instantly
-const RECORDING_ENABLED = (process.env.RECORDING_ENABLED ?? "true").toLowerCase() !== "false";
+const RECORDING_ENABLED = (process.env.RECORDING_ENABLED ?? "false").toLowerCase() === "true";
 
 // --- SAFEGUARD 2: MAX_TOTAL_RECORDS global cap ---
 // Hard cap across ALL sessions/IPs — prevents runaway testnet drain
@@ -768,7 +768,7 @@ app.post("/api/rpc", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "127.0.0.1", () => {
   console.log(`AgentLedger API running on port ${PORT}`);
   console.log(`Loaded ${decisions.length} decisions`);
   console.log(`Serving frontend from ${FRONTEND_DIST}`);

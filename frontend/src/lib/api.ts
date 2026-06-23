@@ -39,6 +39,8 @@ export interface RecordResponse {
   outputHash: string;
   txHash: string;
   explorerUrl: string;
+  fallback?: boolean;
+  fallbackReason?: string;
 }
 
 export interface WorkbenchLimitsResponse {

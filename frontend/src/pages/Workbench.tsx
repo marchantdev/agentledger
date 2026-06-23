@@ -134,6 +134,8 @@ export default function Workbench() {
   const [currentStep, setCurrentStep] = useState(-1);
   const [result, setResult] = useState<DecisionRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
+  const [fallbackReason, setFallbackReason] = useState<string | null>(null);
   const abortRef = useRef(false);
   const navigate = useNavigate();
 
@@ -151,6 +153,8 @@ export default function Workbench() {
     setActiveScenario(scenario);
     setResult(null);
     setError(null);
+    setIsFallback(false);
+    setFallbackReason(null);
     setCurrentStep(-1);
 
     // Initialize policy steps
@@ -182,11 +186,21 @@ export default function Workbench() {
     setRunPhase("recording");
     try {
       const data = await api.workbenchRecord(scenario.id);
-      // If live recording worked, fetch the new decision
-      const fresh = await api.getDecision(data.decisionId);
-      setResult(fresh);
+      if (data.fallback) {
+        // Backend returned a seeded fallback — show read-only state
+        setIsFallback(true);
+        setFallbackReason(data.fallbackReason || "Live recording unavailable");
+        const seeded = await api.getDecision(scenario.seededDecisionId);
+        setResult(seeded);
+      } else {
+        // Live recording succeeded
+        const fresh = await api.getDecision(data.decisionId);
+        setResult(fresh);
+      }
     } catch {
-      // Fall back to seeded decision
+      // Network error — fall back to seeded decision
+      setIsFallback(true);
+      setFallbackReason("Live recording unavailable — showing demo data");
       try {
         const seeded = await api.getDecision(scenario.seededDecisionId);
         setResult(seeded);
@@ -206,6 +220,8 @@ export default function Workbench() {
     setCurrentStep(-1);
     setResult(null);
     setError(null);
+    setIsFallback(false);
+    setFallbackReason(null);
   };
 
   if (loading) {
@@ -240,6 +256,8 @@ export default function Workbench() {
           currentStep={currentStep}
           result={result}
           error={error}
+          isFallback={isFallback}
+          fallbackReason={fallbackReason}
           onReset={resetRun}
           onViewReceipt={(id) => navigate(`/receipt/${id}`)}
         />
@@ -405,6 +423,8 @@ function AgentRunPanel({
   currentStep,
   result,
   error,
+  isFallback,
+  fallbackReason,
   onReset,
   onViewReceipt,
 }: {
@@ -414,6 +434,8 @@ function AgentRunPanel({
   currentStep: number;
   result: DecisionRecord | null;
   error: string | null;
+  isFallback: boolean;
+  fallbackReason: string | null;
   onReset: () => void;
   onViewReceipt: (id: number) => void;
 }) {
@@ -592,20 +614,37 @@ function AgentRunPanel({
         {/* Done — show on-chain proof */}
         {runPhase === "done" && result && (
           <div className="animate-fade-in-up space-y-3">
-            <div
-              className="flex items-center gap-3 p-4 rounded-lg"
-              style={{ backgroundColor: theme.colors.success + "10", borderLeft: `3px solid ${theme.colors.success}` }}
-            >
-              <CheckCircle size={20} style={{ color: theme.colors.success }} />
-              <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: theme.colors.success }}>
-                  Decision Recorded On-Chain
-                </p>
-                <p className="text-xs mt-0.5" style={{ color: theme.colors.textMuted }}>
-                  Block #{result.blockHeight} &middot; Casper testnet
-                </p>
+            {isFallback ? (
+              <div
+                className="flex items-center gap-3 p-4 rounded-lg"
+                style={{ backgroundColor: "#f59e0b20", borderLeft: "3px solid #f59e0b" }}
+              >
+                <AlertTriangle size={20} style={{ color: "#f59e0b" }} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold" style={{ color: "#f59e0b" }}>
+                    Read-Only Demo — Seeded Receipt
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: theme.colors.textMuted }}>
+                    {fallbackReason || "Live recording unavailable"} &middot; Showing pre-recorded on-chain data
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div
+                className="flex items-center gap-3 p-4 rounded-lg"
+                style={{ backgroundColor: theme.colors.success + "10", borderLeft: `3px solid ${theme.colors.success}` }}
+              >
+                <CheckCircle size={20} style={{ color: theme.colors.success }} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold" style={{ color: theme.colors.success }}>
+                    Decision Recorded On-Chain
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: theme.colors.textMuted }}>
+                    Block #{result.blockHeight} &middot; Casper testnet
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="font-mono text-xs space-y-1.5 p-3 rounded-lg" style={{ backgroundColor: theme.colors.surfaceAlt, color: theme.colors.textMuted }}>
               <div className="flex items-center gap-2">

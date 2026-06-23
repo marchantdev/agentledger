@@ -21,7 +21,7 @@ const BACKEND_URL = process.env.BACKEND_URL || "";
 const BACKEND_SECRET = process.env.BACKEND_SECRET || "";
 // NOTE: If BACKEND_SECRET is empty, backend will reject all write requests (fail-closed).
 // Set BACKEND_SECRET in Vercel environment variables before enabling live recording.
-const RECORDING_ENABLED = process.env.RECORDING_ENABLED !== "false";
+const RECORDING_ENABLED = process.env.RECORDING_ENABLED === "true";
 const GLOBAL_CAP = parseInt(process.env.GLOBAL_CAP || "25", 10);
 const RATE_LIMIT_MAX = 3; // per minute per IP
 const SESSION_CAP = 5;
