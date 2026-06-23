@@ -484,21 +484,44 @@ export default function Receipt() {
                 className="rounded-lg p-4 text-xs font-mono overflow-x-auto space-y-4"
                 style={{ backgroundColor: theme.colors.surfaceAlt }}
               >
-                {/* Transaction args */}
+                {/* Local receipt fields — from local store, NOT parsed from RPC */}
                 <div>
                   <span className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: theme.colors.textMuted }}>
-                    Named Arguments (on-chain)
+                    Local Receipt Metadata
                   </span>
+                  <p className="text-xs mb-1.5" style={{ color: theme.colors.textMuted }}>
+                    Sourced from the local receipt store, not directly from the Casper RPC.
+                    These fields are included in the hash computation — their integrity is
+                    guaranteed by the chain-verified hashes below.
+                  </p>
                   <pre style={{ color: theme.colors.text }} className="whitespace-pre-wrap break-all">
 {JSON.stringify({
   agent_id: decision.agentId,
   action_class: decision.actionClass,
-  input_hash: decision.inputHash,
-  output_hash: decision.outputHash,
   job_payment_ref_hash: decision.jobPaymentRefHash || "(empty)",
+  timestamp: decision.timestamp,
 }, null, 2)}
                   </pre>
                 </div>
+
+                {/* Chain-verified hashes — only these are confirmed directly from Casper RPC */}
+                {verification?.chainVerified && (
+                  <div className="border-t pt-3" style={{ borderColor: theme.colors.border + "40" }}>
+                    <span className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: theme.colors.textMuted }}>
+                      Chain-Verified Hashes (from Casper RPC)
+                    </span>
+                    <p className="text-xs mb-1.5" style={{ color: theme.colors.textMuted }}>
+                      These values were parsed directly from the on-chain transaction named
+                      arguments via Casper RPC — this is what the blockchain actually stores.
+                    </p>
+                    <pre style={{ color: theme.colors.text }} className="whitespace-pre-wrap break-all">
+{JSON.stringify({
+  input_hash: verification.onChain.inputHash,
+  output_hash: verification.onChain.outputHash,
+}, null, 2)}
+                    </pre>
+                  </div>
+                )}
 
                 {/* Transaction metadata */}
                 <div className="border-t pt-3" style={{ borderColor: theme.colors.border + "40" }}>
@@ -512,7 +535,6 @@ export default function Receipt() {
   contract_package: "hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb",
   entry_point: "record_decision",
   chain: "casper-test",
-  timestamp: decision.timestamp,
 }, null, 2)}
                   </pre>
                 </div>
@@ -529,8 +551,6 @@ export default function Receipt() {
   chain_status: verification.chainStatus,
   input_match: verification.details.inputMatch,
   output_match: verification.details.outputMatch,
-  on_chain_input_hash: verification.onChain.inputHash,
-  on_chain_output_hash: verification.onChain.outputHash,
   explorer_url: verification.onChain.explorerUrl,
 }, null, 2)}
                     </pre>
