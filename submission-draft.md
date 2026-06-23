@@ -22,7 +22,7 @@ AgentLedger records tamper-evident decision receipts for AI agents on the Casper
 
 AI agents are being deployed to manage assets, execute trades, and approve payments autonomously. But when something goes wrong — a disputed payment, a rogue trade, an audit — there is no tamper-proof record of what the agent decided. Traditional logs are centralized and editable. AgentLedger solves this with Casper-native decision receipts. Every agent decision is SHA-256 hashed (inputs, outputs, and job/payment context) and recorded on-chain via an Odra smart contract. The receipt is immutable — modify any field and the hash verification fails instantly. This creates an audit-ready evidence trail without exposing sensitive data on-chain.
 
-The core of AgentLedger is a DecisionRegistry smart contract (Rust/Odra) deployed on Casper testnet, storing decision attestations with structured fields: agent_id, action_class, input_hash, output_hash, and job_payment_ref_hash. The React frontend provides four key experiences: (1) an **Agent Workbench** where users run demo policy agents and watch them evaluate rules step by step before recording decisions on-chain; (2) a **Payment Dispute Case File** that walks through a realistic vendor dispute resolved using on-chain evidence; (3) a **Verify** page for interactive tamper detection; and (4) **Receipt pages** with agent policy traces, Casper proof drawers, and audit-ready exports. Six real decisions from four agent types (treasury, trading, risk, compliance) are recorded on Casper testnet across blocks 8256786–8256790, each verifiable via the testnet explorer.
+The core of AgentLedger is a DecisionRegistry smart contract (Rust/Odra) deployed on Casper testnet, storing decision attestations with structured fields: agent_id, action_class, input_hash, output_hash, and job_payment_ref_hash. The React frontend provides five key experiences: (1) an **Agent Workbench** where users run demo policy agents and watch them evaluate rules step by step before recording decisions on-chain; (2) a **Paid Agent Job Flow** — a guided 6-phase end-to-end walkthrough showing the complete lifecycle from job creation through payment verification and dispute resolution; (3) a **Payment Dispute Case File** that walks through a realistic vendor dispute resolved using on-chain evidence; (4) a **Verify** page for interactive tamper detection; and (5) **Receipt pages** with agent policy traces, Casper proof drawers, enterprise audit packet export, and x402-ready payment binding. Six real decisions from four agent types (treasury, trading, risk, compliance) are recorded on Casper testnet across blocks 8256786–8256790, each verifiable via the testnet explorer.
 
 The payment/job reference hash is the key differentiator. It ties each decision receipt to the specific job or payment the agent was fulfilling. Auditors can trace from a financial record to the exact on-chain proof of the agent's decision. AgentLedger positions Casper as the trust layer for autonomous AI work — not by building another agent capability, but by building the accountability infrastructure that every agent needs.
 
@@ -36,10 +36,12 @@ AgentLedger provides tamper-evident decision receipts for AI agents on Casper. E
 
 Key capabilities:
 - **Agent Workbench** — Run demo policy agents with visible step-by-step rule evaluation, then see decisions recorded on-chain
-- **Receipts** — Shareable pages with chain verification badge, agent policy trace, Casper proof drawer, tamper demo, QR code, and audit export
+- **Paid Agent Job Flow** — Guided 6-phase end-to-end walkthrough: job created → agent evaluates → decision recorded → receipt bound to payment ref → payer verifies → dispute resolved. The complete paid-agent story.
+- **Receipts** — Shareable pages with chain verification badge, agent policy trace, Casper proof drawer, tamper demo, QR code, and enterprise audit packet export
 - **Payment Dispute Demo** — Guided 5-phase walkthrough: vendor claims $15K, on-chain record proves $10K, hash mismatch disproves the claim
+- **Enterprise Audit Packet** — Download comprehensive per-receipt proof: decision JSON, all hashes, Casper tx hash, block height, contract package, verification + tamper results, markdown explanation
 - **Verify** — Select any decision, edit data, and watch tamper detection in real time
-- **Audit Export** — Download audit-ready receipt reports (Markdown/JSON)
+- **x402-Ready Payment Binding** — Each receipt binds to a job/payment reference hash, ready for x402 micropayment integration
 
 All verification runs client-side via Casper RPC. The on-chain data is the source of truth, not a backend.
 

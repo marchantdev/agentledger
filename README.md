@@ -17,11 +17,13 @@ The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet
 ### What you can do:
 
 - **Agent Workbench** — Run a demo policy agent: watch it evaluate rules step by step (budget checks, vendor approval, risk thresholds), then see the decision recorded on-chain
-- **Receipts** — Shareable `/receipt/:id` pages with chain verification badge, agent policy trace, tamper demo, Casper proof drawer, and QR code
+- **Paid Agent Job Flow** — Guided 6-phase end-to-end walkthrough: job created → agent evaluates → decision recorded on Casper → receipt bound to payment ref → payer verifies → dispute resolved. The complete paid-agent lifecycle.
+- **Receipts** — Shareable `/receipt/:id` pages with chain verification badge, agent policy trace, tamper demo, Casper proof drawer, x402-ready payment binding callout, and QR code
 - **Payment Dispute Demo** — Walk through a realistic vendor dispute: a vendor claims $15K was approved, but the on-chain record proves $10K. Five-phase guided investigation.
 - **Verify** — Select any decision, edit the data, and watch tamper detection in action
 - **Dashboard** — Real-time feed of agent decisions with on-chain stats, agent filter, and explorer links
-- **Audit Export** — Download audit-ready receipt reports in Markdown or JSON
+- **Enterprise Audit Packet** — Download comprehensive per-receipt proof: decision JSON, all hashes, Casper tx hash, block height, contract package, verification + tamper results, markdown explanation
+- **Why Casper** — Dedicated docs section explaining deterministic finality, tamper-evidence, RPC verification without backend trust, and agent commerce alignment
 
 ## How It Works
 
@@ -129,7 +131,7 @@ agentledger/
 │   └── package.json
 ├── frontend/          # React dashboard (Vite + TypeScript + Tailwind)
 │   ├── src/
-│   │   ├── pages/     # Landing, Dashboard, Workbench, Verify, Receipt, Dispute, About
+│   │   ├── pages/     # Landing, Dashboard, Workbench, Verify, Receipt, Dispute, JobFlow, About
 │   │   ├── components/
 │   │   ├── lib/       # API client, Casper verification, types
 │   │   └── theme.config.ts
