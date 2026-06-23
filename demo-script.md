@@ -1,4 +1,4 @@
-# AgentLedger Demo Video — Production Script v3 (Receipt-Loop Flow)
+# AgentLedger Demo Video — Production Script v4 (Full Product Flow)
 
 ## Target: 80 seconds | Voice: ElevenLabs Daniel (Steady Broadcaster)
 
@@ -13,57 +13,57 @@
 
 ---
 
-### SCENE 2: Solution (0:08–0:16)
+### SCENE 2: Solution (0:08–0:15)
 **Visual:** AgentLedger landing page loads. Hero text visible. Value props visible.
 
 | Display Text | Phonetic Voiceover |
 |---|---|
-| AgentLedger — Verifiable receipts for the agent economy | Agent Ledger. Every agent decision gets a tamper-proof receipt on Casper, bound to a payment or job reference hash. If an agent gets paid, it leaves a receipt. |
+| AgentLedger — Verifiable receipts for the agent economy | Agent Ledger. Every agent decision gets a tamper-proof receipt on Casper, bound to a payment or job reference hash. |
 
 ---
 
-### SCENE 3: Dashboard (0:16–0:26)
-**Visual:** Dashboard page. Stats cards (On-Chain Receipts, Confirmed, Active Agents, Latest Block). Decision timeline with 4 agents. Click one to show details.
+### SCENE 3: Dashboard (0:15–0:23)
+**Visual:** Dashboard page. Stats cards (On-Chain Receipts, Confirmed, Active Agents, Latest Block). Decision timeline with agents.
 
 | Display Text | Phonetic Voiceover |
 |---|---|
-| Real metrics: 8 decisions from 4 agents, all on Casper testnet | Here's the dashboard. Eight agent decisions from four different agents, each recorded on Casper testnet. Real metrics — on-chain receipts, confirmation count, and the latest Casper block number. |
+| Real metrics: 8 decisions from 4 agents, all on Casper testnet | The dashboard shows real agent decisions recorded on Casper testnet. On-chain receipts, confirmation count, and the latest Casper block number. |
 
 ---
 
-### SCENE 4: Receipt Page (0:26–0:38)
-**Visual:** Click a decision to navigate to /receipt/:id. Show: agent ID, action class, job payment ref hash, input/output hashes, Casper TX hash, block height. Green "Verified from Casper RPC" badge. QR code visible.
+### SCENE 4: Receipt + Audit Packet (0:23–0:36)
+**Visual:** Click a decision → /receipt/:id. Show: agent ID, action class, job payment ref hash, input/output hashes, Casper TX hash, block height. Green "Verified" badge. Then show the Audit Packet download section — Markdown + JSON export buttons.
 
 | Display Text | Phonetic Voiceover |
 |---|---|
-| Shareable receipt: verified from Casper R-P-C, with job reference hash | Click any decision to see its on-chain receipt. Every field is here: the agent, the action, the job payment reference hash, and the Casper transaction. The verification badge confirms the hashes match the on-chain data in real time. Each receipt is shareable with a Q-R code. |
+| On-chain receipt with downloadable enterprise Audit Packet | Click any decision to see its on-chain receipt. Every field: the agent, the action, the job payment reference hash, and the Casper transaction. Verification confirms the hashes match on-chain data in real time. Download a complete enterprise audit packet — Markdown or J-SON — with contract details, chain verification, and tamper test results. |
 
 ---
 
-### SCENE 5: Tamper Detection (0:38–0:52) [KILLER MOMENT]
-**Visual:** On Receipt page, click "Try Tampering". The output data gets modified (payment amount changes). Red TAMPERED banner appears. Hash mismatch shown.
+### SCENE 5: Tamper Detection (0:36–0:48) [KILLER MOMENT]
+**Visual:** On Receipt page, click "Try Tampering". Output data modified. Red TAMPERED banner appears. Hash mismatch shown.
 
 | Display Text | Phonetic Voiceover |
 |---|---|
-| Tamper the data. The hash breaks instantly. | Now watch. Click try tampering. The system modifies the payment amount in the output data. It re-verifies against the on-chain hash, and the receipt instantly shows TAMPERED. The hash mismatch proves exactly what the agent originally decided. The ledger never lies. |
+| Tamper the data. The hash breaks instantly. | Now watch. Click try tampering. The system modifies the payment amount. It re-verifies against the on-chain hash, and the receipt instantly shows TAMPERED. The hash mismatch proves exactly what the agent originally decided. The ledger never lies. |
 
 ---
 
-### SCENE 6: Agent Workbench (0:52–1:05)
-**Visual:** Navigate to Workbench page. Three scenario cards visible. Select "Vendor Payment". Agent decides. Pending → Confirmed animation. Receipt link appears.
+### SCENE 6: Paid Agent Flow (0:48–1:02)
+**Visual:** Navigate to /job-flow. Show the 6-phase guided flow: Job Brief card → Agent Evaluates → On-Chain Record (pending → confirmed) → Receipt bound to job → Verify step → Tamper test fails. Honest "demo policy agent" label visible.
 
 | Display Text | Phonetic Voiceover |
 |---|---|
-| Live Workbench: run an agent scenario, get a receipt on Casper | The Agent Workbench lets you try it live. Pick a scenario — vendor payment, defi swap, or risk alert. The agent makes a decision, records the hash on Casper testnet, and you get a verifiable receipt. Every recording is rate-limited and balance-protected. |
+| End-to-end: job created, agent decides, receipt on Casper, payer verifies | Here's the full flow. A job is created. The agent evaluates inputs against policy. The decision hash is recorded on Casper. A receipt is bound to the job reference. The payer verifies the receipt. And if anyone tampers with the data, the chain catches it. Every paid agent interaction leaves a verifiable trail. |
 
 ---
 
-### SCENE 7: Audit Export + Close (1:05–1:18)
-**Visual:** Back on receipt page. Click "Export Markdown" button. Download starts. Then show landing page with stats. "Built for the Casper Agentic Buildathon 2026."
+### SCENE 7: Why Casper + Close (1:02–1:18)
+**Visual:** Show the Why Casper section on the Docs page — deterministic finality, tamper evidence, R-P-C verification, agent commerce. Then landing page with "Built for the Casper Agentic Buildathon 2026."
 
 | Display Text | Phonetic Voiceover |
 |---|---|
-| Audit-ready exports. Built on Casper. Open source. | Every receipt can be exported as an audit-ready report — Markdown or J-SON, with chain verification status and a privacy note that no raw data is stored on chain. Agent Ledger. Verifiable receipts for the agent economy. Built on Casper. Open source on GitHub. |
+| Why Casper: deterministic finality, tamper-proof receipts, no backend trust needed | Why Casper? Deterministic finality means a receipt is final the moment it's confirmed — no probabilistic waiting. Verification runs directly against Casper R-P-C, no backend trust required. Agent Ledger. Verifiable receipts for the agent economy. Built on Casper. Open source on GitHub. |
 
 ---
 
@@ -72,12 +72,12 @@
 1. `01_problem.png` — Black screen with problem text (create in ffmpeg)
 2. `02_landing.png` — Landing page hero with value props
 3. `03_dashboard.png` — Dashboard with stats cards + decision timeline
-4. `04_receipt.png` — Receipt page with green verification badge + QR
+4. `04_receipt.png` — Receipt page with green verification badge + audit packet download
 5. `05_receipt_tampered.png` — Receipt page with red TAMPERED banner
-6. `06_workbench.png` — Workbench page with 3 scenario cards
-7. `07_workbench_recording.png` — Workbench recording in progress (pending → confirmed)
-8. `08_audit_export.png` — Receipt page showing export buttons
-9. `09_close.png` — Landing page stats + footer
+6. `06_jobflow.png` — Job Flow page showing 6-phase guided flow
+7. `07_jobflow_receipt.png` — Job Flow receipt step with verification
+8. `08_why_casper.png` — Docs page Why Casper section
+9. `09_close.png` — Landing page stats + buildathon credit
 
 ## Video Production Notes
 
