@@ -1,4 +1,5 @@
-import { Github, Globe, BookOpen, Shield, Code, Terminal } from "lucide-react";
+import { Github, Globe, BookOpen, Shield, Code, Terminal, Zap, CheckCircle, Lock, Search, Link as LinkIcon, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { theme, densityMap } from "../theme.config";
 
 export default function About() {
@@ -40,6 +41,109 @@ export default function About() {
           infrastructure to prove what decisions were made, when, and with what
           inputs — especially for agents performing paid work.
         </p>
+      </div>
+
+      {/* Why Casper? */}
+      <div
+        className={`${theme.ui.radius} border overflow-hidden`}
+        style={{ borderColor: theme.colors.primary + "30", backgroundColor: theme.colors.surface }}
+      >
+        <div
+          className="px-5 py-4 border-b"
+          style={{ borderColor: theme.colors.border, backgroundColor: theme.colors.primary + "06" }}
+        >
+          <h2
+            className="text-lg font-bold flex items-center gap-2"
+            style={{ color: theme.colors.text, fontFamily: theme.fonts.headline }}
+          >
+            <Shield size={20} style={{ color: theme.colors.primary }} />
+            Why Casper?
+          </h2>
+          <p className="text-sm mt-1" style={{ color: theme.colors.textMuted }}>
+            AgentLedger is built on Casper because agent commerce demands specific blockchain properties — not just "decentralization."
+          </p>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {[
+            {
+              icon: Lock,
+              title: "Deterministic Finality",
+              description: "Once a decision hash is recorded on Casper, it is final. No reorganizations, no probabilistic confirmation windows. When the receipt says block #8,256,786, that block will never change. This matters for compliance — auditors need certainty, not probability.",
+            },
+            {
+              icon: Shield,
+              title: "Tamper-Evident by Design",
+              description: "The Odra smart contract stores only SHA-256 hashes — the input hash, output hash, and job/payment reference hash. Any modification to the original data produces a completely different hash. Verification is binary: match or mismatch. There is no ambiguity.",
+            },
+            {
+              icon: Search,
+              title: "RPC Verification Without Backend Trust",
+              description: "Anyone can call the Casper RPC endpoint directly, fetch the transaction, extract the named arguments (input_hash, output_hash), and compare them to their own computed hashes. No AgentLedger backend needed. No trust assumptions. The chain is the arbiter.",
+            },
+            {
+              icon: LinkIcon,
+              title: "Job/Payment Reference Binding",
+              description: "Each receipt includes a hashed job and payment reference. This cryptographically binds the agent's decision to a specific job — you can't swap receipts between different jobs or claim a different payment was associated with a decision.",
+            },
+            {
+              icon: Zap,
+              title: "Why This Matters for Agent Commerce",
+              description: "As AI agents handle autonomous financial decisions, every party needs proof of what happened. The payer needs to verify the agent did what it was told. The agent operator needs an audit trail. Regulators need accountability. Casper's deterministic finality and transparent RPC make this possible without intermediaries.",
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="flex gap-3">
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: theme.colors.primary + "15" }}
+                >
+                  <Icon size={18} style={{ color: theme.colors.primary }} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold" style={{ color: theme.colors.text }}>
+                    {item.title}
+                  </h3>
+                  <p className="text-xs leading-relaxed mt-0.5" style={{ color: theme.colors.textMuted }}>
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Contract reference */}
+          <div
+            className="p-3 rounded-lg flex items-center gap-3"
+            style={{ backgroundColor: theme.colors.surfaceAlt }}
+          >
+            <Code size={16} style={{ color: theme.colors.textMuted }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs" style={{ color: theme.colors.textMuted }}>Contract package</p>
+              <p className="text-xs font-mono truncate" style={{ color: theme.colors.text }}>
+                hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb
+              </p>
+            </div>
+            <a
+              href="https://testnet.cspr.live"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs flex-shrink-0 px-2 py-1 rounded border transition-colors hover:bg-white/5"
+              style={{ borderColor: theme.colors.border, color: theme.colors.textMuted }}
+            >
+              Explorer
+            </a>
+          </div>
+
+          <Link
+            to="/job-flow"
+            className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg"
+            style={{ backgroundColor: theme.colors.primary, color: "#000" }}
+          >
+            See It In Action <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
 
       <div className={`card ${theme.ui.radius} ${density.card}`}>
