@@ -15,18 +15,21 @@ const KEYS_DIR = path.join(__dirname, "..", "keys");
 const CONTRACT_PACKAGE = "hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb";
 const NODE_URL = "https://node.testnet.casper.network/rpc";
 const CHAIN_NAME = "casper-test";
-const BACKEND_SECRET = process.env.BACKEND_SECRET || "agentledger-demo-2026";
+const BACKEND_SECRET = process.env.BACKEND_SECRET;
+if (!BACKEND_SECRET) {
+  console.error("FATAL: BACKEND_SECRET env var is required. Generate with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"");
+  process.exit(1);
+}
 
-// Middleware: validate backend secret on write endpoints
+// Middleware: validate backend secret on write endpoints (FAIL-CLOSED)
 function requireSecret(req, res, next) {
   const secret = req.headers["x-backend-secret"];
   if (secret && secret === BACKEND_SECRET) return next();
-  // Also allow local requests (for testing)
+  // Allow local requests (for testing only)
   const ip = req.ip || req.connection.remoteAddress || "";
   if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return next();
-  // Allow requests without secret for backward compat during transition
-  // TODO: After Vercel env is set, make this strict
-  return next();
+  // FAIL-CLOSED: reject all unauthenticated requests
+  return res.status(401).json({ error: "Unauthorized", detail: "Valid X-Backend-Secret header required" });
 }
 
 // Load decisions from store (or seed if store doesn't exist)
@@ -217,7 +220,7 @@ app.get("/api/stats", (req, res) => {
 });
 
 // POST /api/workbench/record — record a FIXED scenario on-chain (abuse-protected)
-app.post("/api/workbench/record", rateLimit, perSessionCap, async (req, res) => {
+app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async (req, res) => {
   const { scenario } = req.body;
   const preset = WORKBENCH_SCENARIOS[scenario];
   if (!preset) {
@@ -319,7 +322,7 @@ app.get("/api/workbench/limits", (req, res) => {
 });
 
 // POST /api/record — record a new decision on-chain (also rate-limited for public safety)
-app.post("/api/record", rateLimit, perSessionCap, async (req, res) => {
+app.post("/api/record", requireSecret, rateLimit, perSessionCap, async (req, res) => {
   const { agentId, actionClass, inputData, outputData, jobPaymentRefHash } = req.body;
 
   if (!agentId || !actionClass || !inputData || !outputData) {
