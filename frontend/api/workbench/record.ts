@@ -15,6 +15,8 @@
  * - Graceful degradation (any failure -> seeded receipt, never visible error)
  */
 
+export const config = { runtime: "edge" };
+
 const BACKEND_URL = process.env.BACKEND_URL || "";
 const BACKEND_SECRET = process.env.BACKEND_SECRET || "";
 // NOTE: If BACKEND_SECRET is empty, backend will reject all write requests (fail-closed).

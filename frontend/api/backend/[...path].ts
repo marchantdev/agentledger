@@ -4,6 +4,8 @@
  * Frontend calls /api/backend/X which proxies to VPS backend /api/X.
  */
 
+export const config = { runtime: "edge" };
+
 const BACKEND_URL = process.env.BACKEND_URL || "";
 
 const CORS_HEADERS = {
