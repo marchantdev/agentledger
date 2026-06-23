@@ -6,6 +6,20 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
+
+// --- SAFEGUARD 1: RECORDING_ENABLED kill-switch ---
+// Set RECORDING_ENABLED=false in env to disable all write operations instantly
+const RECORDING_ENABLED = (process.env.RECORDING_ENABLED ?? "true").toLowerCase() !== "false";
+
+// --- SAFEGUARD 2: MAX_TOTAL_RECORDS global cap ---
+// Hard cap across ALL sessions/IPs — prevents runaway testnet drain
+const MAX_TOTAL_RECORDS = parseInt(process.env.MAX_TOTAL_RECORDS || "25", 10);
+let totalRecordCount = 0; // incremented on each successful recording
+
+// --- SAFEGUARD 3: Single-flight mutex ---
+// Only one on-chain transaction can be in-flight at a time
+let recordingInFlight = false;
+
 // CORS restricted to Vercel frontend + localhost dev only (Finding 2 fix)
 const CORS_ORIGINS = [
   "https://frontend-beige-zeta-86.vercel.app",
@@ -67,6 +81,9 @@ function saveStore() {
   fs.writeFileSync(STORE_PATH, JSON.stringify(decisions, null, 2));
 }
 
+// Initialize global record count from existing decisions with txHash (real on-chain records)
+totalRecordCount = decisions.filter((d) => d.txHash && d.txHash.length > 0).length;
+
 function sha256(data) {
   return crypto.createHash("sha256").update(data).digest("hex");
 }
@@ -106,14 +123,16 @@ function rateLimit(req, res, next) {
   next();
 }
 
-// Per-session cap: max recordings per session token (cookie or header)
-const SESSION_CAP = 5; // max 5 recordings per session
-const sessionCounts = new Map(); // sessionId -> count
+// Per-session cap: max recordings per IP (NOT spoofable via headers)
+// X-Session-Id is used for UX only — the actual cap key is IP-based
+const SESSION_CAP = 5; // max 5 recordings per IP
+const sessionCounts = new Map(); // ip -> count
 
 function perSessionCap(req, res, next) {
   if (process.env.TEST_MODE && process.env.NODE_ENV === "test") return next();
-  const sessionId = req.headers["x-session-id"] || req.ip || "anon";
-  const count = sessionCounts.get(sessionId) || 0;
+  // Use IP as the session key — client-supplied X-Session-Id is informational only
+  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  const count = sessionCounts.get(ip) || 0;
   if (count >= SESSION_CAP) {
     return res.status(429).json({
       error: "Session recording limit reached",
@@ -122,7 +141,7 @@ function perSessionCap(req, res, next) {
       sessionCap: SESSION_CAP,
     });
   }
-  sessionCounts.set(sessionId, count + 1);
+  sessionCounts.set(ip, count + 1);
   res.setHeader("X-Session-Recordings", count + 1);
   res.setHeader("X-Session-Cap", SESSION_CAP);
   next();
@@ -166,10 +185,9 @@ async function checkKeyBalance() {
     return balance;
   } catch (err) {
     // FAIL-CLOSED: if we can't check balance, use stale cache.
-    // If no cache exists, return sufficient balance to allow demo to work
-    // (the actual balance guard threshold prevents real overspending)
+    // If no stale cache exists, return 0 to block recording (fail-closed).
     console.error("Balance check failed:", err.message);
-    return cachedBalance.motes ?? MIN_BALANCE_MOTES + 1;
+    return cachedBalance.motes ?? 0;
   }
 }
 
@@ -251,6 +269,34 @@ app.get("/api/stats", (req, res) => {
 
 // POST /api/workbench/record — record a FIXED scenario on-chain (abuse-protected)
 app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async (req, res) => {
+  const isTestMode = process.env.TEST_MODE && process.env.NODE_ENV === "test";
+
+  // SAFEGUARD 1: Kill-switch — instantly disable all recordings
+  if (!RECORDING_ENABLED && !isTestMode) {
+    return res.status(403).json({
+      error: "Recording disabled",
+      detail: "On-chain recording is currently disabled by the operator.",
+    });
+  }
+
+  // SAFEGUARD 2: Global hard cap — prevent runaway testnet drain
+  if (totalRecordCount >= MAX_TOTAL_RECORDS && !isTestMode) {
+    return res.status(403).json({
+      error: "Global recording limit reached",
+      detail: `Maximum ${MAX_TOTAL_RECORDS} total recordings reached. Contact the operator to reset.`,
+      totalRecordings: totalRecordCount,
+      globalCap: MAX_TOTAL_RECORDS,
+    });
+  }
+
+  // SAFEGUARD 3: Single-flight mutex — only one tx at a time
+  if (recordingInFlight && !isTestMode) {
+    return res.status(409).json({
+      error: "Recording in progress",
+      detail: "Another recording is currently being submitted. Please wait and retry.",
+    });
+  }
+
   const { scenario } = req.body;
   const preset = Object.hasOwn(WORKBENCH_SCENARIOS, scenario) ? WORKBENCH_SCENARIOS[scenario] : null;
   if (!preset) {
@@ -260,15 +306,29 @@ app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async
     });
   }
 
-  // Key balance guard
-  const balance = await checkKeyBalance();
-  if (balance < MIN_BALANCE_MOTES) {
-    return res.status(503).json({
-      error: "Testnet key balance too low",
-      detail: "The demo key needs more CSPR. Please try again later.",
-      balanceCspr: (balance / 1e9).toFixed(1),
-    });
+  // Key balance guard — FAIL-CLOSED on RPC error (skipped in test mode)
+  if (!isTestMode) {
+    let balance;
+    try {
+      balance = await checkKeyBalance();
+    } catch (err) {
+      console.error("Balance check threw:", err.message);
+      return res.status(503).json({
+        error: "Balance check failed",
+        detail: "Cannot verify key balance. Recording blocked (fail-closed).",
+      });
+    }
+    if (balance < MIN_BALANCE_MOTES) {
+      return res.status(503).json({
+        error: "Testnet key balance too low",
+        detail: "The demo key needs more CSPR. Please try again later.",
+        balanceCspr: (balance / 1e9).toFixed(1),
+      });
+    }
   }
+
+  // Acquire single-flight lock
+  recordingInFlight = true;
 
   // Use the preset data (no user-controlled input reaches Casper)
   const { agentId, actionClass, inputData, outputData, jobPaymentRefHash } = preset;
@@ -298,6 +358,9 @@ app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async
     const result = JSON.parse(execFileSync("casper-client", args, { timeout: 30000 }).toString());
     const txHash = result.result.transaction_hash.Version1;
 
+    // Increment global counter ONLY on success
+    totalRecordCount++;
+
     const newDecision = {
       decisionId: decisions.length,
       agentId,
@@ -321,10 +384,14 @@ app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async
       outputHash,
       txHash,
       explorerUrl: `https://testnet.cspr.live/transaction/${txHash}`,
+      recordingsRemaining: MAX_TOTAL_RECORDS - totalRecordCount,
     });
   } catch (err) {
     console.error("Transaction submission failed:", err.message);
     res.status(500).json({ error: "Failed to submit transaction", detail: "Internal error — check server logs" });
+  } finally {
+    // Always release the mutex
+    recordingInFlight = false;
   }
 });
 
@@ -340,13 +407,14 @@ app.get("/api/workbench/scenarios", (req, res) => {
   });
 });
 
-// GET /api/workbench/limits — current rate limit + session usage
+// GET /api/workbench/limits — current rate limit + session + global usage
 app.get("/api/workbench/limits", (req, res) => {
   const ip = req.ip || req.connection.remoteAddress || "unknown";
-  const sessionId = req.headers["x-session-id"] || ip;
   const entry = rateLimitMap.get(ip);
-  const sessionCount = sessionCounts.get(sessionId) || 0;
+  const sessionCount = sessionCounts.get(ip) || 0;
   res.json({
+    recordingEnabled: RECORDING_ENABLED,
+    global: { recordings: totalRecordCount, cap: MAX_TOTAL_RECORDS, remaining: Math.max(0, MAX_TOTAL_RECORDS - totalRecordCount) },
     rateLimit: { max: RATE_LIMIT_MAX, remaining: entry ? Math.max(0, RATE_LIMIT_MAX - entry.count) : RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS },
     session: { recordings: sessionCount, cap: SESSION_CAP },
   });
@@ -650,9 +718,19 @@ app.get("/api/decisions/:id/audit-report", async (req, res) => {
   res.send(md);
 });
 
-// GET /api/health — health check
+// GET /api/health — health check (includes safeguard status)
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", decisions: decisions.length, contract: CONTRACT_PACKAGE });
+  res.json({
+    status: "ok",
+    decisions: decisions.length,
+    contract: CONTRACT_PACKAGE,
+    safeguards: {
+      recordingEnabled: RECORDING_ENABLED,
+      globalCap: MAX_TOTAL_RECORDS,
+      globalRecordings: totalRecordCount,
+      singleFlightActive: recordingInFlight,
+    },
+  });
 });
 
 // Serve frontend static files

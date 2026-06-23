@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node verify.test.js && node record-injection.test.js"
+    "test": "node verify.test.js && node record-injection.test.js && node safeguards.test.js"
   },
   "keywords": [],
   "author": "",
