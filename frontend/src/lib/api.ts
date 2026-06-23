@@ -41,6 +41,10 @@ export interface RecordResponse {
   explorerUrl: string;
   fallback?: boolean;
   fallbackReason?: string;
+  // Full decision record returned by the backend on live recording.
+  // Use this directly instead of calling getDecision() to avoid a second
+  // round-trip against the static /decisions.json (which only has seed data).
+  decision?: DecisionRecord;
 }
 
 export interface WorkbenchLimitsResponse {
@@ -65,10 +69,21 @@ export const api = {
   },
 
   getDecision: async (id: number): Promise<DecisionRecord> => {
+    // Try static bundled decisions first (seeded data).
     const all = await loadDecisions();
     const decision = all.find((d) => d.decisionId === id);
-    if (!decision) throw new Error("Decision not found");
-    return decision;
+    if (decision) return decision;
+    // Not in static file — this is a live-recorded decision.
+    // Fetch from the backend via the /api/backend proxy (which reads decisions-store.json).
+    return api.getLiveDecision(id);
+  },
+
+  // Fetch a single decision from the live backend store (bypasses static /decisions.json).
+  // Used for decisions recorded in the current demo session that aren't in the build bundle.
+  getLiveDecision: async (id: number): Promise<DecisionRecord> => {
+    const res = await fetch(`/api/backend/decisions/${id}`);
+    if (!res.ok) throw new Error(`Decision ${id} not found in live store`);
+    return res.json();
   },
 
   getStats: async (): Promise<StatsResponse> => {

@@ -387,6 +387,9 @@ app.post("/api/workbench/record", requireSecret, rateLimit, perSessionCap, async
       txHash,
       explorerUrl: `https://testnet.cspr.live/transaction/${txHash}`,
       recordingsRemaining: MAX_TOTAL_RECORDS - totalRecordCount,
+      // Full decision record — frontend uses this directly so it doesn't need a second fetch
+      // against the static /decisions.json (which only contains seeded data).
+      decision: newDecision,
     });
   } catch (err) {
     console.error("Transaction submission failed:", err.message);

@@ -193,8 +193,11 @@ export default function Workbench() {
         const seeded = await api.getDecision(scenario.seededDecisionId);
         setResult(seeded);
       } else {
-        // Live recording succeeded
-        const fresh = await api.getDecision(data.decisionId);
+        // Live recording succeeded — use the full decision record from the response directly.
+        // data.decision is the newDecision object returned by the backend; it's fresher and
+        // avoids a second round-trip against the static /decisions.json (seed-only).
+        // Fall back to getLiveDecision if backend omitted the field (older backend version).
+        const fresh = data.decision ?? await api.getLiveDecision(data.decisionId);
         setResult(fresh);
       }
     } catch {

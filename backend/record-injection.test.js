@@ -177,6 +177,12 @@ async function run() {
       assert.strictEqual(res.status, 200, `Expected 200, got ${res.status}`);
       assert.ok(res.body.success, "Response should have success=true");
       assert.ok(res.body.txHash, "Response should have txHash");
+      // V1 fix: response must include the full decision record so the frontend
+      // can display the fresh receipt without a second round-trip against static /decisions.json
+      assert.ok(res.body.decision, "Response should include full decision object");
+      assert.strictEqual(res.body.decision.decisionId, res.body.decisionId, "decision.decisionId must match top-level decisionId");
+      assert.ok(res.body.decision.txHash, "decision.txHash must be present");
+      assert.strictEqual(res.body.decision.txHash, res.body.txHash, "decision.txHash must match top-level txHash");
     });
   }
 
