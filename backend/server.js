@@ -81,8 +81,10 @@ function saveStore() {
   fs.writeFileSync(STORE_PATH, JSON.stringify(decisions, null, 2));
 }
 
-// Initialize global record count from existing decisions with txHash (real on-chain records)
-totalRecordCount = decisions.filter((d) => d.txHash && d.txHash.length > 0).length;
+// Global record count starts at 0 each server instance — "operator-resettable" per plan.
+// Restart the server to reset the cap. Pre-existing seeded decisions don't count.
+// Balance guard is the hard safety net; this cap is abuse prevention for a single run.
+totalRecordCount = 0;
 
 function sha256(data) {
   return crypto.createHash("sha256").update(data).digest("hex");
