@@ -51,20 +51,17 @@ export default function About() {
           style={{ backgroundColor: theme.colors.surfaceAlt }}
         >
           <pre style={{ color: theme.colors.text }}>
-{`// Record a decision via the AgentLedger API
-const res = await fetch("/api/record", {
+{`// Record a decision via the Agent Workbench API
+const res = await fetch("/api/workbench/record", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    agentId: "treasury-agent-01",
-    actionClass: "vendor_payment_approval",
-    inputData: { invoice_id: "INV-2026-0847", vendor: "CloudServ Inc", amount: 10000 },
-    outputData: { decision: "APPROVED", reason: "Within budget" },
-    jobPaymentRefHash: "x402-job-0x7f3a2b1c",
-  }),
+  headers: {
+    "Content-Type": "application/json",
+    "x-backend-secret": process.env.BACKEND_SECRET,
+  },
+  body: JSON.stringify({ scenario: "vendor_payment" }),
 });
 
-const { txHash, explorerUrl } = await res.json();
+const { decision, txHash, explorerUrl } = await res.json();
 console.log("On-chain:", explorerUrl);
 
 // Verify — re-hash the data and compare to on-chain record
