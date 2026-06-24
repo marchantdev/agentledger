@@ -118,8 +118,11 @@ export default function Receipt() {
     }
   };
 
+  const PUBLIC_BASE = "https://frontend-beige-zeta-86.vercel.app";
   const shareUrl =
-    typeof window !== "undefined" ? window.location.href : "";
+    typeof window !== "undefined"
+      ? `${PUBLIC_BASE}/receipt/${id}`
+      : "";
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(shareUrl)}&bgcolor=0a0e14&color=2dd4bf&format=svg`;
 
   if (loading) {

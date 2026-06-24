@@ -211,5 +211,41 @@
       "agent_reasoning_summary": "Portfolio drift detected: CSPR 5% overweight, USDT 5% underweight. Exceeds 3% rebalance band. Executing 2 trades to restore target allocation. ETH position unchanged.",
       "agent_type": "deterministic_policy"
     }
+  },
+  {
+    "decisionId": 114,
+    "agentId": "treasury-agent-01",
+    "actionClass": "vendor_payment_approval",
+    "inputHash": "ac8c833e625282a233822193fa657f4f8cb6edb75f00fab7aba56a8e0a219e07",
+    "outputHash": "2463ba13e7fa248a64ecec5abb95a07a0fc1c32b3b7a8668a0a0295bd208c784",
+    "jobPaymentRefHash": "x402-job-0x8a1b2c3d",
+    "txHash": "65cfa46316e0dbc24cabef28825134ea3119b636ca826a46c304b8d0502fa328",
+    "blockHeight": 8286653,
+    "timestamp": "2026-06-24T14:54:57.764Z",
+    "inputData": {
+      "invoice_id": "INV-2026-1547",
+      "vendor": "Acme Cloud",
+      "amount": 8500,
+      "currency": "USDT",
+      "budget_remaining": 52000
+    },
+    "outputData": {
+      "decision": "APPROVED",
+      "reason": "Within budget threshold (16%)",
+      "payment_amount": 8500,
+      "approval_confidence": 0.96
+    },
+    "trace": {
+      "policy_version": "treasury-v2.1",
+      "decision_factors": [
+        "invoice_amount <= 25% of remaining budget (16%)",
+        "vendor on approved list (tier 1)",
+        "no duplicate invoice in last 30 days",
+        "amount below single-approval limit ($15,000)"
+      ],
+      "risk_score": 0.12,
+      "agent_reasoning_summary": "Invoice $8,500 from Acme Cloud consumes 16% of remaining $52,000 budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.",
+      "agent_type": "deterministic_policy"
+    }
   }
 ]

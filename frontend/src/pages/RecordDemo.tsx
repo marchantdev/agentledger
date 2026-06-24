@@ -95,6 +95,9 @@ export default function RecordDemo() {
         <p className="text-sm mt-1" style={{ color: theme.colors.textMuted }}>
           Attest an AI agent decision on Casper testnet. Input and output are SHA-256 hashed and recorded on-chain.
         </p>
+        <div className="mt-3 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, color: theme.colors.textMuted }}>
+          <strong>Note:</strong> This public demo shows read-only verified receipts and seeded walkthroughs. The demo video shows a fresh live recording against the Casper testnet backend. To try live recording, run the backend locally — see the README.
+        </div>
       </div>
 
       {/* Preset buttons */}
