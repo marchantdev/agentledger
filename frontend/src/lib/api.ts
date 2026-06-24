@@ -81,7 +81,11 @@ export const api = {
   // Fetch a single decision from the live backend store (bypasses static /decisions.json).
   // Used for decisions recorded in the current demo session that aren't in the build bundle.
   getLiveDecision: async (id: number): Promise<DecisionRecord> => {
-    const res = await fetch(`/api/backend/decisions/${id}`);
+    // Try Vercel edge proxy path first, then direct backend path (for dev proxy)
+    let res = await fetch(`/api/backend/decisions/${id}`);
+    if (!res.ok) {
+      res = await fetch(`/api/decisions/${id}`);
+    }
     if (!res.ok) throw new Error(`Decision ${id} not found in live store`);
     return res.json();
   },
@@ -111,8 +115,11 @@ export const api = {
 
   verify: async (decisionId: number, inputData: any, outputData: any): Promise<VerifyResponse> => {
     const all = await loadDecisions();
-    const decision = all.find((d) => d.decisionId === decisionId);
-    if (!decision) throw new Error("Decision not found");
+    let decision = all.find((d) => d.decisionId === decisionId);
+    if (!decision) {
+      // Not in static bundle — try the live backend (freshly recorded decisions)
+      decision = await api.getLiveDecision(decisionId);
+    }
     return verifyDecision(decision, inputData, outputData);
   },
 
