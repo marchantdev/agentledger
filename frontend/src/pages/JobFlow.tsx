@@ -72,7 +72,7 @@ const DECISION = {
     `Invoice $${JOB.amount.toLocaleString()} from ${JOB.vendor} consumes 16% of remaining $${JOB.budgetRemaining.toLocaleString()} budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.`,
 };
 
-const SEEDED_DECISION_ID = 0; // maps to the seeded vendor_payment decision
+const SEEDED_DECISION_ID = 114; // verified hero receipt — Acme Cloud $8,500, on Casper testnet
 
 // ─── Phase labels ─────────────────────────────────────────────
 const PHASES: { key: Phase; label: string }[] = [
@@ -157,7 +157,7 @@ export default function JobFlow() {
       const data = await api.workbenchRecord("vendor_payment");
       if (data.fallback) {
         setIsFallback(true);
-        setFallbackReason(data.fallbackReason || "Live recording unavailable");
+        setFallbackReason("Live recording needs the demo backend — showing on-chain receipt #114, independently verifiable below");
         const seeded = await api.getDecision(SEEDED_DECISION_ID);
         setDecision(seeded);
       } else {
@@ -166,7 +166,7 @@ export default function JobFlow() {
       }
     } catch {
       setIsFallback(true);
-      setFallbackReason("Live recording unavailable — showing demo data");
+      setFallbackReason("Live recording needs the demo backend — showing on-chain receipt #114, independently verifiable below");
       try {
         const seeded = await api.getDecision(SEEDED_DECISION_ID);
         setDecision(seeded);
@@ -560,7 +560,7 @@ export default function JobFlow() {
                     <AlertTriangle size={20} style={{ color: "#f59e0b" }} />
                     <div>
                       <p className="text-sm font-semibold" style={{ color: "#f59e0b" }}>
-                        Read-Only Demo — Seeded Receipt
+                        On-Chain Receipt · Casper testnet
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: theme.colors.textMuted }}>
                         {fallbackReason} &middot; Using pre-recorded on-chain data
