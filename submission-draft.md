@@ -77,7 +77,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 |----------|-----|
 | GitHub Repository | https://github.com/marchantdev/agentledger |
 | Live Demo | https://frontend-beige-zeta-86.vercel.app |
-| Demo Video | (to be updated after W7 video production) |
+| Demo Video | 86s walkthrough — live Job Flow → fresh receipt #114 (Casper-verified) → tamper demo. Final hosted URL inserted at submission. |
 | Contract on Testnet | https://testnet.cspr.live/contract/contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a |
 
 ## 10. Team
@@ -112,6 +112,6 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 | How Casper is used | Section 8 |
 | GitHub URL | Section 9 |
 | Demo URL | Section 9 (Live Demo link) |
-| Video URL | Section 9 (to be updated) |
+| Video URL | ⟨insert hosted/DoraHacks video URL at submission⟩ |
 | Team Members | Section 10 |
 | Track | Agentic AI |

@@ -12,7 +12,7 @@ AgentLedger records tamper-evident decision receipts for autonomous AI agents on
 
 **[Try it here](https://frontend-beige-zeta-86.vercel.app)** (Casper Testnet)
 
-The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). New receipts can be generated from the Agent Workbench. Verification reads Casper RPC transaction arguments directly — no backend trust required.
+The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). The demo video shows a fresh live recording; the public demo presents these verified on-chain receipts (including hero receipt #114 — independently verifiable via Casper RPC; see VERIFY_RECEIPT_114.md) as a read-only walkthrough. Verification reads Casper RPC transaction arguments directly — no backend trust required.
 
 ### What you can do:
 
