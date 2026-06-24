@@ -43,33 +43,33 @@ interface PolicyStep {
 // ─── Static Demo Data ─────────────────────────────────────────
 
 const JOB = {
-  id: "JOB-2026-0847",
+  id: "JOB-2026-1547",
   title: "Q2 Infrastructure Invoice Processing",
   client: "Apex Capital Fund",
-  vendor: "CloudServ Inc",
-  amount: 10000,
+  vendor: "Acme Cloud",
+  amount: 8500,
   currency: "USDT",
-  paymentRef: "PAY-X402-0847",
+  paymentRef: "PAY-X402-1547",
   description:
-    "Review and approve vendor invoice INV-2026-0847 from CloudServ Inc for Q2 cloud infrastructure services. Apply treasury policy: budget threshold, vendor tier verification, duplicate check, single-approval limit.",
+    "Review and approve vendor invoice INV-2026-1547 from Acme Cloud for Q2 cloud infrastructure services. Apply treasury policy: budget threshold, vendor tier verification, duplicate check, single-approval limit.",
   postedAt: "2026-06-21T09:00:00Z",
-  budgetRemaining: 45000,
+  budgetRemaining: 52000,
 };
 
 const POLICY_STEPS_DATA = [
-  { label: "Read invoice facts", detail: `${JOB.vendor} — $${JOB.amount.toLocaleString()} ${JOB.currency} — INV-2026-0847` },
-  { label: "Check budget threshold", detail: `$${JOB.amount.toLocaleString()} is 22% of remaining $${JOB.budgetRemaining.toLocaleString()} budget (< 25% limit)` },
+  { label: "Read invoice facts", detail: `${JOB.vendor} — $${JOB.amount.toLocaleString()} ${JOB.currency} — INV-2026-1547` },
+  { label: "Check budget threshold", detail: `$${JOB.amount.toLocaleString()} is 16% of remaining $${JOB.budgetRemaining.toLocaleString()} budget (< 25% limit)` },
   { label: "Verify vendor approval", detail: `${JOB.vendor} — tier-1 approved vendor list` },
-  { label: "Duplicate invoice check", detail: "No duplicate INV-2026-0847 in last 30 days" },
+  { label: "Duplicate invoice check", detail: "No duplicate INV-2026-1547 in last 30 days" },
   { label: "Single-approval limit", detail: `$${JOB.amount.toLocaleString()} < $15,000 single-approval threshold` },
 ];
 
 const DECISION = {
   verdict: "APPROVED",
-  riskScore: 0.18,
-  confidence: 0.94,
+  riskScore: 0.14,
+  confidence: 0.96,
   reasoning:
-    `Invoice $${JOB.amount.toLocaleString()} from ${JOB.vendor} consumes 22% of remaining $${JOB.budgetRemaining.toLocaleString()} budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.`,
+    `Invoice $${JOB.amount.toLocaleString()} from ${JOB.vendor} consumes 16% of remaining $${JOB.budgetRemaining.toLocaleString()} budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.`,
 };
 
 const SEEDED_DECISION_ID = 0; // maps to the seeded vendor_payment decision
@@ -365,7 +365,7 @@ export default function JobFlow() {
               The Trust Problem
             </h3>
             <p className="text-sm leading-relaxed" style={{ color: theme.colors.textMuted }}>
-              An AI agent is about to handle $10,000 autonomously. The client needs to know: <strong style={{ color: theme.colors.text }}>what decision did the agent actually make, and can they prove it later?</strong> Without AgentLedger, the answer depends on trusting internal logs — which can be altered. With AgentLedger, the answer is on Casper's blockchain.
+              An AI agent is about to handle $8,500 autonomously. The client needs to know: <strong style={{ color: theme.colors.text }}>what decision did the agent actually make, and can they prove it later?</strong> Without AgentLedger, the answer depends on trusting internal logs — which can be altered. With AgentLedger, the answer is on Casper's blockchain.
             </p>
           </div>
 
@@ -420,7 +420,7 @@ export default function JobFlow() {
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { key: "invoice", value: "INV-2026-0847" },
+                    { key: "invoice", value: "INV-2026-1547" },
                     { key: "vendor", value: JOB.vendor },
                     { key: "amount", value: `$${JOB.amount.toLocaleString()}` },
                     { key: "currency", value: JOB.currency },
@@ -578,7 +578,7 @@ export default function JobFlow() {
                         Decision Recorded On-Chain
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: theme.colors.textMuted }}>
-                        Block #{decision.blockHeight} &middot; Casper testnet
+                        {decision.blockHeight > 0 ? `Block #${decision.blockHeight.toLocaleString()}` : "Submitted"} &middot; Casper testnet
                       </p>
                     </div>
                   </div>
@@ -725,7 +725,7 @@ export default function JobFlow() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between py-1.5 border-b" style={{ borderColor: theme.colors.border + "40" }}>
                     <span className="text-xs" style={{ color: theme.colors.textMuted }}>Block Height</span>
-                    <span className="text-xs font-mono" style={{ color: theme.colors.success }}>#{decision.blockHeight.toLocaleString()}</span>
+                    <span className="text-xs font-mono" style={{ color: theme.colors.success }}>{decision.blockHeight > 0 ? `#${decision.blockHeight.toLocaleString()}` : "finalizing..."}</span>
                   </div>
                   <div className="flex items-start justify-between py-1.5 border-b" style={{ borderColor: theme.colors.border + "40" }}>
                     <span className="text-xs flex-shrink-0" style={{ color: theme.colors.textMuted }}>TX Hash</span>
@@ -862,7 +862,7 @@ export default function JobFlow() {
           {verifyResult && verifyResult.verified && (
             <div className={`card ${theme.ui.radius}`} style={{ borderLeft: `3px solid ${theme.colors.success}` }}>
               <p className="text-sm leading-relaxed" style={{ color: theme.colors.textMuted }}>
-                The payer now has <strong style={{ color: theme.colors.text }}>cryptographic proof</strong> that the agent's decision was exactly what's recorded — $10,000 to CloudServ Inc. But what if someone tries to claim a different amount?
+                The payer now has <strong style={{ color: theme.colors.text }}>cryptographic proof</strong> that the agent's decision was exactly what's recorded — $8,500 to Acme Cloud. But what if someone tries to claim a different amount?
               </p>
             </div>
           )}
@@ -884,7 +884,7 @@ export default function JobFlow() {
               Tamper Detection
             </h2>
             <p className="text-sm mb-4" style={{ color: theme.colors.textMuted }}>
-              What if CloudServ Inc claims the agent approved $15,000 instead of $10,000? Let's submit their version and see what happens.
+              What if Acme Cloud claims the agent approved $15,000 instead of $8,500? Let's submit their version and see what happens.
             </p>
 
             {/* Side-by-side comparison */}
@@ -959,7 +959,7 @@ export default function JobFlow() {
                       HASH MISMATCH — CLAIM DISPROVED
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: theme.colors.textMuted }}>
-                      The vendor's claimed $15,000 produces a different hash. The on-chain record proves $10,000 was approved.
+                      The vendor's claimed $15,000 produces a different hash. The on-chain record proves $8,500 was approved.
                     </p>
                   </div>
                 </div>

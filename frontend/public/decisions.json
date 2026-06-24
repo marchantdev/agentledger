@@ -66,7 +66,7 @@
         "flagged for manual review"
       ],
       "risk_score": 0.91,
-      "agent_reasoning_summary": "Invoice $38,000 from DataSync LLC would consume 84% of remaining budget. Exceeds single-vendor concentration policy (max 50%). Tier-2 vendor requires dual approval above $20K. Rejected — escalate to finance lead.",
+      "agent_reasoning_summary": "Invoice $38,000 from DataSync LLC would consume 84% of remaining budget. Exceeds single-vendor concentration policy (max 50%). Tier-2 vendor requires dual approval above $20K. Rejected \u2014 escalate to finance lead.",
       "agent_type": "deterministic_policy"
     }
   },
@@ -101,7 +101,7 @@
         "no offsetting hedge detected in portfolio"
       ],
       "risk_score": 0.74,
-      "agent_reasoning_summary": "CSPR/USDT 24h volatility at 8.7% — 74% above the 5% policy threshold. Position size $25K with no hedge. Recommending 40% exposure reduction to bring risk within policy band.",
+      "agent_reasoning_summary": "CSPR/USDT 24h volatility at 8.7% \u2014 74% above the 5% policy threshold. Position size $25K with no hedge. Recommending 40% exposure reduction to bring risk within policy band.",
       "agent_type": "deterministic_policy"
     }
   },
@@ -137,7 +137,7 @@
         "position sizing: 5% of portfolio (within 10% max)"
       ],
       "risk_score": 0.32,
-      "agent_reasoning_summary": "Bullish breakout signal on CSPR/USDT. Buy $5,000 at limit $0.042 — filled at $0.0418 (0.48% slippage, within tolerance). Position size 5% of portfolio, below 10% concentration limit.",
+      "agent_reasoning_summary": "Bullish breakout signal on CSPR/USDT. Buy $5,000 at limit $0.042 \u2014 filled at $0.0418 (0.48% slippage, within tolerance). Position size 5% of portfolio, below 10% concentration limit.",
       "agent_type": "deterministic_policy"
     }
   },
@@ -188,15 +188,27 @@
     "blockHeight": 8256790,
     "timestamp": "2026-06-21T20:24:45.717Z",
     "inputData": {
-      "portfolio": { "CSPR": 0.45, "USDT": 0.35, "ETH": 0.2 },
-      "target": { "CSPR": 0.4, "USDT": 0.4, "ETH": 0.2 },
+      "portfolio": {
+        "CSPR": 0.45,
+        "USDT": 0.35,
+        "ETH": 0.2
+      },
+      "target": {
+        "CSPR": 0.4,
+        "USDT": 0.4,
+        "ETH": 0.2
+      },
       "total_value": 100000
     },
     "outputData": {
       "trades_executed": 2,
       "cspr_sold": 5000,
       "usdt_bought": 5000,
-      "new_allocation": { "CSPR": 0.4, "USDT": 0.4, "ETH": 0.2 }
+      "new_allocation": {
+        "CSPR": 0.4,
+        "USDT": 0.4,
+        "ETH": 0.2
+      }
     },
     "trace": {
       "policy_version": "trading-v3.0",
@@ -238,12 +250,12 @@
     "trace": {
       "policy_version": "treasury-v2.1",
       "decision_factors": [
-        "invoice_amount <= 25% of remaining budget (16%)",
+        "invoice_amount <= 25% of remaining budget",
         "vendor on approved list (tier 1)",
         "no duplicate invoice in last 30 days",
         "amount below single-approval limit ($15,000)"
       ],
-      "risk_score": 0.12,
+      "risk_score": 0.14,
       "agent_reasoning_summary": "Invoice $8,500 from Acme Cloud consumes 16% of remaining $52,000 budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.",
       "agent_type": "deterministic_policy"
     }
