@@ -16,13 +16,13 @@ Verifiable receipts for AI agents doing paid work — every decision bound to a 
 
 ## 3. Short Description (1 paragraph)
 
-AgentLedger records tamper-evident decision receipts for AI agents on the Casper blockchain. When an agent makes a decision — approving a payment, executing a trade, flagging a risk — AgentLedger hashes the decision data and stores it on-chain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Verification runs client-side: recompute SHA-256 hashes and compare against on-chain transaction arguments via Casper RPC. If any field has been altered, verification fails instantly. The live demo records fixed demo decisions on Casper testnet, includes 6 seed receipts from 4 agent types, and lets users generate new receipts from the Agent Workbench. Hash-only storage means no raw data on-chain — audit-ready evidence with privacy.
+AgentLedger records tamper-evident decision receipts for AI agents on the Casper blockchain. When an agent makes a decision — approving a payment, executing a trade, flagging a risk — AgentLedger hashes the decision data and stores it on-chain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Verification runs client-side: recompute SHA-256 hashes and compare against on-chain transaction arguments via Casper RPC. If any field has been altered, verification fails instantly. The live demo includes 7 verified on-chain receipts (6 seeds from 4 agent types + the hero, receipt #114), each independently verifiable via Casper RPC. The public Workbench and Job Flow are read-only walkthroughs; live recording runs through a guarded backend signer. Hash-only storage means no raw data on-chain — audit-ready evidence with privacy.
 
 ## 4. Long Description (2-3 paragraphs)
 
 AI agents are being deployed to manage assets, execute trades, and approve payments autonomously. But when something goes wrong — a disputed payment, a rogue trade, an audit — there is no tamper-proof record of what the agent decided. Traditional logs are centralized and editable. AgentLedger solves this with Casper-native decision receipts. Every agent decision is SHA-256 hashed (inputs, outputs, and job/payment context) and recorded on-chain via an Odra smart contract. The receipt is immutable — modify any field and the hash verification fails instantly. This creates an audit-ready evidence trail without exposing sensitive data on-chain.
 
-The core of AgentLedger is a DecisionRegistry smart contract (Rust/Odra) deployed on Casper testnet, storing decision attestations with structured fields: agent_id, action_class, input_hash, output_hash, and job_payment_ref_hash. The React frontend provides five key experiences: (1) an **Agent Workbench** where users run demo policy agents and watch them evaluate rules step by step before recording decisions on-chain; (2) a **Paid Agent Job Flow** — a guided 6-phase end-to-end walkthrough showing the complete lifecycle from job creation through payment verification and dispute resolution; (3) a **Payment Dispute Case File** that walks through a realistic vendor dispute resolved using on-chain evidence; (4) a **Verify** page for interactive tamper detection; and (5) **Receipt pages** with agent policy traces, Casper proof drawers, enterprise audit packet export, and x402-ready payment binding. Six real decisions from four agent types (treasury, trading, risk, compliance) are recorded on Casper testnet across blocks 8256786–8256790, each verifiable via the testnet explorer.
+The core of AgentLedger is a DecisionRegistry smart contract (Rust/Odra) deployed on Casper testnet, storing decision attestations with structured fields: agent_id, action_class, input_hash, output_hash, and job_payment_ref_hash. The React frontend provides five key experiences: (1) an **Agent Workbench** where users run demo policy agents and watch them evaluate rules step by step, then open the resulting verified on-chain receipt; (2) a **Paid Agent Job Flow** — a guided 6-phase end-to-end walkthrough showing the complete lifecycle from job creation through payment verification and dispute resolution; (3) a **Payment Dispute Case File** that walks through a realistic vendor dispute resolved using on-chain evidence; (4) a **Verify** page for interactive tamper detection; and (5) **Receipt pages** with agent policy traces, Casper proof drawers, enterprise audit packet export, and x402-ready payment binding. Six real decisions from four agent types (treasury, trading, risk, compliance) are recorded on Casper testnet across blocks 8256786–8256790, each verifiable via the testnet explorer.
 
 The payment/job reference hash is the key differentiator. It ties each decision receipt to the specific job or payment the agent was fulfilling. Auditors can trace from a financial record to the exact on-chain proof of the agent's decision. AgentLedger positions Casper as the trust layer for autonomous AI work — not by building another agent capability, but by building the accountability infrastructure that every agent needs.
 
@@ -61,7 +61,7 @@ AgentLedger is Casper-native by design — not a chain-agnostic tool ported to C
 
 - **Odra Framework (Rust):** The DecisionRegistry smart contract is written in Rust using Odra 2.8.0, compiled to WASM, and deployed on Casper testnet. It stores decision attestations with structured fields (agent_id, action_class, input_hash, output_hash, job_payment_ref_hash, timestamp) using Odra's named key storage.
 
-- **Casper Testnet (live transactions):** 6 recorded decisions produce real on-chain transactions verifiable via the testnet explorer (blocks 8256786–8256790). The contract is deployed at `contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a`. The Agent Workbench can trigger new on-chain recordings.
+- **Casper Testnet (live transactions):** 6 recorded decisions produce real on-chain transactions verifiable via the testnet explorer (blocks 8256786–8256790). The contract is deployed at `contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a`. Live recording runs through a guarded backend signer (time-limited, per-session caps); the public demo is read-only.
 
 - **Client-side RPC verification:** Verification reads transaction arguments directly from Casper RPC via a thin Edge Function proxy (CORS). The on-chain data is authoritative — no backend trust required.
 
@@ -77,7 +77,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 |----------|-----|
 | GitHub Repository | https://github.com/marchantdev/agentledger |
 | Live Demo | https://frontend-beige-zeta-86.vercel.app |
-| Demo Video | 86s walkthrough — live Job Flow → fresh receipt #114 (Casper-verified) → tamper demo. Final hosted URL inserted at submission. |
+| Demo Video | 48.5s tight cut — value prop → verified receipt #114 (Acme Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Hosted URL inserted at submission. |
 | Contract on Testnet | https://testnet.cspr.live/contract/contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a |
 
 ## 10. Team
@@ -90,7 +90,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 
 - Live demo records **fixed demo decisions** on Casper testnet
 - **6 seed receipts** included from 4 agent types (treasury, trading, risk, compliance)
-- New receipts generated from the **Agent Workbench** (demo policy agents with visible rule evaluation)
+- Verified on-chain receipts including the judge-verifiable hero #114; the public **Agent Workbench** is a read-only walkthrough (demo policy agents with visible rule evaluation)
 - Verification reads **Casper RPC transaction args** directly (client-side, no backend trust)
 - **Payment Dispute Case File** demonstrates why on-chain receipts matter (guided 5-phase walkthrough)
 - Agents shown are **deterministic demo policy agents** with fixed rules — not frontier LLMs
