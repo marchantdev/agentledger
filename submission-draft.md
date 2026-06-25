@@ -16,7 +16,7 @@ Verifiable receipts for AI agents doing paid work — every decision bound to a 
 
 ## 3. Short Description (1 paragraph)
 
-AgentLedger records tamper-evident decision receipts for AI agents on the Casper blockchain. When an agent makes a decision — approving a payment, executing a trade, flagging a risk — AgentLedger hashes the decision data and stores it on-chain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Verification runs client-side: recompute SHA-256 hashes and compare against on-chain transaction arguments via Casper RPC. If any field has been altered, verification fails instantly. The live demo includes 7 verified on-chain receipts (6 seeds from 4 agent types + the hero, receipt #114), each independently verifiable via Casper RPC. The public Workbench and Job Flow are read-only walkthroughs; live recording runs through a guarded backend signer. Hash-only storage means no raw data on-chain — audit-ready evidence with privacy.
+AgentLedger records tamper-evident decision receipts for AI agents on the Casper blockchain. When an agent makes a decision — approving a payment, executing a trade, flagging a risk — AgentLedger hashes the decision data and stores it on-chain via an Odra smart contract. Each receipt binds the agent's decision to a **payment/job reference hash**, linking what the agent decided to the work it was paid for. Verification runs client-side: recompute SHA-256 hashes and compare against on-chain transaction arguments via Casper RPC. If any field has been altered, verification fails instantly. The live demo includes 7 verified on-chain receipts (6 seeds from 4 agent types + the hero, receipt #119), each independently verifiable via Casper RPC. The public Workbench and Job Flow are read-only walkthroughs; live recording runs through a guarded backend signer. Hash-only storage means no raw data on-chain — audit-ready evidence with privacy.
 
 ## 4. Long Description (2-3 paragraphs)
 
@@ -77,7 +77,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 |----------|-----|
 | GitHub Repository | https://github.com/marchantdev/agentledger |
 | Live Demo | https://frontend-beige-zeta-86.vercel.app |
-| Demo Video | ~40-second tight cut — value prop → verified receipt #114 (Acme Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Hosted URL inserted at submission. |
+| Demo Video | ~40-second tight cut — value prop → verified receipt #119 (Northwind Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Hosted URL inserted at submission. |
 | Contract on Testnet | https://testnet.cspr.live/contract/contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a |
 
 ## 10. Team
@@ -90,7 +90,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 
 - Demo receipts recorded on Casper testnet via a guarded backend signer; public demo is read-only
 - **6 seed receipts** included from 4 agent types (treasury, trading, risk, compliance)
-- Verified on-chain receipts including the judge-verifiable hero #114; the public **Agent Workbench** is a read-only walkthrough (demo policy agents with visible rule evaluation)
+- Verified on-chain receipts including the judge-verifiable hero #119; the public **Agent Workbench** is a read-only walkthrough (demo policy agents with visible rule evaluation)
 - Verification reads **Casper RPC transaction args** directly (client-side, no backend trust)
 - **Payment Dispute Case File** demonstrates why on-chain receipts matter (guided 5-phase walkthrough)
 - Agents shown are **deterministic demo policy agents** with fixed rules — not frontier LLMs

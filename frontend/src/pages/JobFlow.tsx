@@ -46,12 +46,12 @@ const JOB = {
   id: "JOB-2026-1547",
   title: "Q2 Infrastructure Invoice Processing",
   client: "Apex Capital Fund",
-  vendor: "Acme Cloud",
+  vendor: "Northwind Cloud",
   amount: 8500,
   currency: "USDT",
   paymentRef: "PAY-X402-1547",
   description:
-    "Review and approve vendor invoice INV-2026-1547 from Acme Cloud for Q2 cloud infrastructure services. Apply treasury policy: budget threshold, vendor tier verification, duplicate check, single-approval limit.",
+    "Review and approve vendor invoice INV-2026-1547 from Northwind Cloud for Q2 cloud infrastructure services. Apply treasury policy: budget threshold, vendor tier verification, duplicate check, single-approval limit.",
   postedAt: "2026-06-21T09:00:00Z",
   budgetRemaining: 52000,
 };
@@ -72,7 +72,7 @@ const DECISION = {
     `Invoice $${JOB.amount.toLocaleString()} from ${JOB.vendor} consumes 16% of remaining $${JOB.budgetRemaining.toLocaleString()} budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.`,
 };
 
-const SEEDED_DECISION_ID = 114; // verified hero receipt — Acme Cloud $8,500, on Casper testnet
+const SEEDED_DECISION_ID = 119; // verified hero receipt — Northwind Cloud $8,500, on Casper testnet
 
 // ─── Phase labels ─────────────────────────────────────────────
 const PHASES: { key: Phase; label: string }[] = [
@@ -157,7 +157,7 @@ export default function JobFlow() {
       const data = await api.workbenchRecord("vendor_payment");
       if (data.fallback) {
         setIsFallback(true);
-        setFallbackReason("Live recording needs the demo backend — showing on-chain receipt #114, independently verifiable below");
+        setFallbackReason("Live recording needs the demo backend — showing on-chain receipt #119, independently verifiable below");
         const seeded = await api.getDecision(SEEDED_DECISION_ID);
         setDecision(seeded);
       } else {
@@ -166,7 +166,7 @@ export default function JobFlow() {
       }
     } catch {
       setIsFallback(true);
-      setFallbackReason("Live recording needs the demo backend — showing on-chain receipt #114, independently verifiable below");
+      setFallbackReason("Live recording needs the demo backend — showing on-chain receipt #119, independently verifiable below");
       try {
         const seeded = await api.getDecision(SEEDED_DECISION_ID);
         setDecision(seeded);
@@ -862,7 +862,7 @@ export default function JobFlow() {
           {verifyResult && verifyResult.verified && (
             <div className={`card ${theme.ui.radius}`} style={{ borderLeft: `3px solid ${theme.colors.success}` }}>
               <p className="text-sm leading-relaxed" style={{ color: theme.colors.textMuted }}>
-                The payer now has <strong style={{ color: theme.colors.text }}>cryptographic proof</strong> that the agent's decision was exactly what's recorded — $8,500 to Acme Cloud. But what if someone tries to claim a different amount?
+                The payer now has <strong style={{ color: theme.colors.text }}>cryptographic proof</strong> that the agent's decision was exactly what's recorded — $8,500 to Northwind Cloud. But what if someone tries to claim a different amount?
               </p>
             </div>
           )}
@@ -884,7 +884,7 @@ export default function JobFlow() {
               Tamper Detection
             </h2>
             <p className="text-sm mb-4" style={{ color: theme.colors.textMuted }}>
-              What if Acme Cloud claims the agent approved $15,000 instead of $8,500? Let's submit their version and see what happens.
+              What if Northwind Cloud claims the agent approved $15,000 instead of $8,500? Let's submit their version and see what happens.
             </p>
 
             {/* Side-by-side comparison */}

@@ -198,7 +198,7 @@ const WORKBENCH_SCENARIOS = {
   vendor_payment: {
     agentId: "treasury-agent-01",
     actionClass: "vendor_payment_approval",
-    inputData: { invoice_id: "INV-2026-1547", vendor: "Acme Cloud", amount: 8500, currency: "USDT", budget_remaining: 52000 },
+    inputData: { invoice_id: "INV-2026-1547", vendor: "Northwind Cloud", amount: 8500, currency: "USDT", budget_remaining: 52000 },
     outputData: { decision: "APPROVED", reason: "Within budget threshold (16%)", payment_amount: 8500, approval_confidence: 0.96 },
     jobPaymentRefHash: "x402-job-0x8a1b2c3d",
   },

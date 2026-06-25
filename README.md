@@ -14,13 +14,13 @@ AgentLedger records tamper-evident decision receipts for autonomous AI agents on
 
 ### Verify the hero receipt yourself (judges)
 
-Receipt **#114** is a real, fresh Casper testnet attestation — verify it independently, no trust required:
-- **Open it:** [`/receipt/114`](https://frontend-beige-zeta-86.vercel.app/receipt/114) — shows *"VERIFIED from Casper RPC"*
-- **Transaction:** `65cfa46316e0dbc24cabef28825134ea3119b636ca826a46c304b8d0502fa328` · **Block** 8286653 · [explorer](https://testnet.cspr.live/transaction/65cfa46316e0dbc24cabef28825134ea3119b636ca826a46c304b8d0502fa328)
-- **One command:** `node verify_receipt_114.js` → queries Casper RPC and confirms execution success, `record_decision`, the contract package, and that all on-chain named args match the displayed receipt → `VERIFIED`
-- **Full guide:** [VERIFY_RECEIPT_114.md](VERIFY_RECEIPT_114.md)
+Receipt **#119** is a real, fresh Casper testnet attestation — verify it independently, no trust required:
+- **Open it:** [`/receipt/119`](https://frontend-beige-zeta-86.vercel.app/receipt/119) — shows *"VERIFIED from Casper RPC"*
+- **Transaction:** `c737ef8d221a58214cfc27e3ae7c9424df61e68ef1013419c49c31ed09846682` · **Block** 8299405 · [explorer](https://testnet.cspr.live/transaction/c737ef8d221a58214cfc27e3ae7c9424df61e68ef1013419c49c31ed09846682)
+- **One command:** `node verify_receipt_119.js` → queries Casper RPC and confirms execution success, `record_decision`, the contract package, and that all on-chain named args match the displayed receipt → `VERIFIED`
+- **Full guide:** [VERIFY_RECEIPT_119.md](VERIFY_RECEIPT_119.md)
 
-The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). The ~40-second demo video walks the value prop, the verified hero receipt #114, and tamper detection; the public demo presents these verified on-chain receipts (including hero receipt #114 — independently verifiable via Casper RPC; see VERIFY_RECEIPT_114.md) as a read-only walkthrough. Verification reads Casper RPC transaction arguments directly — no backend trust required.
+The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). The ~40-second demo video walks the value prop, the verified hero receipt #119, and tamper detection; the public demo presents these verified on-chain receipts (including hero receipt #119 — independently verifiable via Casper RPC; see VERIFY_RECEIPT_119.md) as a read-only walkthrough. Verification reads Casper RPC transaction arguments directly — no backend trust required.
 
 ### What you can do:
 
@@ -83,7 +83,7 @@ Each decision stores: `agent_id`, `action_class`, `input_hash`, `output_hash`, `
 
 The verification flow is the core feature:
 
-1. Select a recorded decision (e.g., "treasury-agent-01 approved an $8,500 payment to Acme Cloud")
+1. Select a recorded decision (e.g., "treasury-agent-01 approved an $8,500 payment to Northwind Cloud")
 2. The original input/output data is loaded
 3. Edit any field — change the amount from $8,500 to $15,000
 4. Click "Verify Against Chain"
@@ -120,7 +120,7 @@ This is sourced directly from Casper RPC — verified without any third-party ex
 | 3 | trading-agent-03 | swap | 8256789 | [bd9165f4...](https://testnet.cspr.live/transaction/bd9165f409b6a4e81dfc602f0369e402aa5e8d00d4aff2c21858b6bb88ab47dc) |
 | 4 | compliance-agent-04 | vendor_payment_approval | 8256789 | [a8553b37...](https://testnet.cspr.live/transaction/a8553b3715a3947147e7f36863e0d25db920507369e4972aee4dee7e56fb757e) |
 | 5 | trading-agent-03 | rebalance | 8256790 | [fdfd7b9c...](https://testnet.cspr.live/transaction/fdfd7b9cbe52109e0d62a008018ea45fbfdd1f56c4682d46c50a3fa9b8f3340a) |
-| **114** | **treasury-agent-01** | **vendor_payment_approval** | **8286653** | [**65cfa463...**](https://testnet.cspr.live/transaction/65cfa46316e0dbc24cabef28825134ea3119b636ca826a46c304b8d0502fa328) — hero, judge-verifiable |
+| **119** | **treasury-agent-01** | **vendor_payment_approval** | **8299405** | [**c737ef8d...**](https://testnet.cspr.live/transaction/c737ef8d221a58214cfc27e3ae7c9424df61e68ef1013419c49c31ed09846682) — hero, judge-verifiable |
 
 All 6 decisions are verified on Casper testnet. Click any transaction to view on the Casper block explorer.
 
@@ -225,7 +225,7 @@ AgentLedger is Casper-native by design:
 
 ## What This Is (and Isn't)
 
-**What it is:** A working demo that records agent decision receipts on Casper testnet. The live demo includes 7 verified on-chain receipts — the 6 seeds plus the hero, receipt #114 (Acme Cloud $8,500), each independently verifiable via Casper RPC. The public Workbench and Job Flow are read-only walkthroughs; live recording runs through a guarded backend signer. Verification reads Casper RPC transaction args directly.
+**What it is:** A working demo that records agent decision receipts on Casper testnet. The live demo includes 7 verified on-chain receipts — the 6 seeds plus the hero, receipt #119 (Northwind Cloud $8,500), each independently verifiable via Casper RPC. The public Workbench and Job Flow are read-only walkthroughs; live recording runs through a guarded backend signer. Verification reads Casper RPC transaction args directly.
 
 **What it demonstrates:** That on-chain hash attestation provides tamper-evident proof of agent decisions, making disputes resolvable in seconds instead of weeks.
 

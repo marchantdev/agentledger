@@ -24,7 +24,7 @@ AgentLedger creates verifiable receipts for every agent decision. Each receipt b
 4. Anyone can verify: re-hash the original data → compare to on-chain → match = verified, mismatch = tampered
 
 ### Key Features
-- **Agent Workbench (read-only walkthrough)** — Run demo policy agent scenarios (vendor payment, DeFi swap, risk alert). A deterministic policy agent evaluates rules step by step, then opens the verified on-chain receipt. The public demo includes 7 verified receipts (6 seeds + the hero #114, Acme Cloud $8,500); live recording runs through a guarded backend signer (not the public demo).
+- **Agent Workbench (read-only walkthrough)** — Run demo policy agent scenarios (vendor payment, DeFi swap, risk alert). A deterministic policy agent evaluates rules step by step, then opens the verified on-chain receipt. The public demo includes 7 verified receipts (6 seeds + the hero #119, Northwind Cloud $8,500); live recording runs through a guarded backend signer (not the public demo).
 - **Paid Agent Job Flow** — Guided 6-phase end-to-end walkthrough: job created → policy agent evaluates inputs → decision recorded on Casper → receipt bound to job/payment ref → payer verifies → dispute/tamper fails. Turns "attestation demo" into "the trust layer for paid agents."
 - **Tamper Detection** — Edit any decision field, re-verify against chain, see instant TAMPERED/VERIFIED result. The on-chain hash is the source of truth.
 - **Payment Dispute Demo** — Guided walkthrough: vendor claims $15K approved, on-chain proves $10K. Dispute resolved cryptographically.
@@ -40,7 +40,7 @@ AgentLedger creates verifiable receipts for every agent decision. Each receipt b
 - **Frontend:** React 19 + Vite + TypeScript + Tailwind CSS, deployed on Vercel
 - **Verification:** Client-side SHA-256 (canonical JSON) + Casper RPC via Edge Function proxy — no backend trust required
 - **Live recording backend:** Express.js + casper-client CLI — submits to Casper testnet, gated by kill-switch + global cap
-- **On-chain:** Casper testnet, 7 verified receipts (6 seeds + the hero #114), all verifiable via Casper RPC
+- **On-chain:** Casper testnet, 7 verified receipts (6 seeds + the hero #119), all verifiable via Casper RPC
 - **Tests:** 31 backend tests (verify integrity, injection resistance, safeguard enforcement)
 
 ### Why Casper
@@ -59,7 +59,7 @@ https://github.com/marchantdev/agentledger
 https://frontend-beige-zeta-86.vercel.app
 
 ## Demo Video
-~40-second walkthrough: value prop → verified receipt #114 (Acme Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. [hosted URL inserted at submission]
+~40-second walkthrough: value prop → verified receipt #119 (Northwind Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. [hosted URL inserted at submission]
 
 ## Contract
 - Package: hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb

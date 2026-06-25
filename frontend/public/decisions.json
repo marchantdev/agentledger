@@ -225,18 +225,18 @@
     }
   },
   {
-    "decisionId": 114,
+    "decisionId": 119,
     "agentId": "treasury-agent-01",
     "actionClass": "vendor_payment_approval",
-    "inputHash": "ac8c833e625282a233822193fa657f4f8cb6edb75f00fab7aba56a8e0a219e07",
+    "inputHash": "d37fd3b41d5b9b723996ee573859976544cecb178a30bd3f373ee91fddb2c27e",
     "outputHash": "2463ba13e7fa248a64ecec5abb95a07a0fc1c32b3b7a8668a0a0295bd208c784",
     "jobPaymentRefHash": "x402-job-0x8a1b2c3d",
-    "txHash": "65cfa46316e0dbc24cabef28825134ea3119b636ca826a46c304b8d0502fa328",
-    "blockHeight": 8286653,
+    "txHash": "c737ef8d221a58214cfc27e3ae7c9424df61e68ef1013419c49c31ed09846682",
+    "blockHeight": 8299405,
     "timestamp": "2026-06-24T14:54:57.764Z",
     "inputData": {
       "invoice_id": "INV-2026-1547",
-      "vendor": "Acme Cloud",
+      "vendor": "Northwind Cloud",
       "amount": 8500,
       "currency": "USDT",
       "budget_remaining": 52000
@@ -256,7 +256,7 @@
         "amount below single-approval limit ($15,000)"
       ],
       "risk_score": 0.14,
-      "agent_reasoning_summary": "Invoice $8,500 from Acme Cloud consumes 16% of remaining $52,000 budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.",
+      "agent_reasoning_summary": "Invoice $8,500 from Northwind Cloud consumes 16% of remaining $52,000 budget. Below single-approval threshold. Vendor verified tier-1. Approved with high confidence.",
       "agent_type": "deterministic_policy"
     }
   }

@@ -10,7 +10,7 @@ const PRESETS = [
     label: "Vendor Payment",
     agentId: "treasury-agent-01",
     actionClass: "vendor_payment_approval",
-    inputData: JSON.stringify({ invoice_id: "INV-2026-1547", vendor: "Acme Cloud", amount: 8500, currency: "USDT", budget_remaining: 52000 }, null, 2),
+    inputData: JSON.stringify({ invoice_id: "INV-2026-1547", vendor: "Northwind Cloud", amount: 8500, currency: "USDT", budget_remaining: 52000 }, null, 2),
     outputData: JSON.stringify({ decision: "APPROVED", reason: "Within budget threshold (16%)", payment_amount: 8500, approval_confidence: 0.96 }, null, 2),
     jobPaymentRefHash: "x402-job-0x8a1b2c3d",
   },

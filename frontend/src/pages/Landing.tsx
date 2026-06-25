@@ -195,8 +195,8 @@ export default function Landing() {
             If an agent gets paid, it should leave a receipt. Verify the receipt from the demo — or try the tamper-detection verifier.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-            <Link to="/receipt/114" className="btn-primary flex items-center gap-2 text-base px-8 py-3">
-              <ShieldCheck size={18} /> Verify Receipt #114
+            <Link to="/receipt/119" className="btn-primary flex items-center gap-2 text-base px-8 py-3">
+              <ShieldCheck size={18} /> Verify Receipt #119
             </Link>
             <Link to="/verify" className="btn-outline text-base px-8 py-3">
               Try Verification <ArrowRight size={18} />
