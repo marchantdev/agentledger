@@ -20,7 +20,7 @@ Receipt **#114** is a real, fresh Casper testnet attestation — verify it indep
 - **One command:** `node verify_receipt_114.js` → queries Casper RPC and confirms execution success, `record_decision`, the contract package, and that all on-chain named args match the displayed receipt → `VERIFIED`
 - **Full guide:** [VERIFY_RECEIPT_114.md](VERIFY_RECEIPT_114.md)
 
-The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). The 48.5s demo video walks the value prop, the verified hero receipt #114, and tamper detection; the public demo presents these verified on-chain receipts (including hero receipt #114 — independently verifiable via Casper RPC; see VERIFY_RECEIPT_114.md) as a read-only walkthrough. Verification reads Casper RPC transaction arguments directly — no backend trust required.
+The demo includes 6 seed receipts from 4 agent types, recorded on Casper testnet (blocks 8256786–8256790). The ~40-second demo video walks the value prop, the verified hero receipt #114, and tamper detection; the public demo presents these verified on-chain receipts (including hero receipt #114 — independently verifiable via Casper RPC; see VERIFY_RECEIPT_114.md) as a read-only walkthrough. Verification reads Casper RPC transaction arguments directly — no backend trust required.
 
 ### What you can do:
 

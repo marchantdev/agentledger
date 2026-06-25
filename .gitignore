@@ -1,27 +1,28 @@
-node_modules/
+
+.conversation-context
+decision-room.md
+decisions-store.json
+demo-assets/*.mp4
 dist/
-.vercel/
-*.tsbuildinfo
 .env
+FACT-LOCK.md
+hackathon-landscape.md
+hackathon-requirements.md
+hackathon_review/
+.idea-approved
+idea-candidates.json
+idea-candidates.md
+# Internal governance / stale planning docs — not for public submission repo (2026-06-23)
+# Internal runtime/review artifacts — not for public repo (2026-06-23)
+judge-packet.md
+JUDGING_STRATEGY.md
 keys/
 keys-v2/
-decisions-store.json
-
-# Internal governance / stale planning docs — not for public submission repo (2026-06-23)
-why-we-win.md
-judge-packet.md
-quality-review.md
-FACT-LOCK.md
-JUDGING_STRATEGY.md
-decision-room.md
-idea-candidates.md
-idea-candidates.json
-winning-thesis.md
-hackathon-requirements.md
-hackathon-landscape.md
-
-# Internal runtime/review artifacts — not for public repo (2026-06-23)
-hackathon_review/
 logs/
-.conversation-context
-.idea-approved
+node_modules/
+quality-review.md
+*.tsbuildinfo
+.vercel/
+video/*.mp4
+why-we-win.md
+winning-thesis.md

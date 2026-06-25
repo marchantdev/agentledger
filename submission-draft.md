@@ -77,7 +77,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 |----------|-----|
 | GitHub Repository | https://github.com/marchantdev/agentledger |
 | Live Demo | https://frontend-beige-zeta-86.vercel.app |
-| Demo Video | 48.5s tight cut — value prop → verified receipt #114 (Acme Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Hosted URL inserted at submission. |
+| Demo Video | ~40-second tight cut — value prop → verified receipt #114 (Acme Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Hosted URL inserted at submission. |
 | Contract on Testnet | https://testnet.cspr.live/contract/contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a |
 
 ## 10. Team
@@ -88,7 +88,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 
 ## What This Demo Does (honest summary for submission)
 
-- Live demo records **fixed demo decisions** on Casper testnet
+- Demo receipts recorded on Casper testnet via a guarded backend signer; public demo is read-only
 - **6 seed receipts** included from 4 agent types (treasury, trading, risk, compliance)
 - Verified on-chain receipts including the judge-verifiable hero #114; the public **Agent Workbench** is a read-only walkthrough (demo policy agents with visible rule evaluation)
 - Verification reads **Casper RPC transaction args** directly (client-side, no backend trust)
