@@ -59,7 +59,7 @@ https://github.com/marchantdev/agentledger
 https://frontend-beige-zeta-86.vercel.app
 
 ## Demo Video
-53-second walkthrough: value prop → verified receipt #119 (Northwind Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. [hosted URL inserted at submission]
+53-second walkthrough: value prop → verified receipt #119 (Northwind Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. https://youtu.be/-MnSxaIxAAo
 
 ## Contract
 - Package: hash-f8f8e34c914d463b0036cdeb80544e590d934e18f9cd3f749c74e5ac79c299bb

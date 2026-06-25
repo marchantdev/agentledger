@@ -77,7 +77,7 @@ Gas-efficient: ~3 CSPR per receipt. Hash-only privacy — no raw prompts or outp
 |----------|-----|
 | GitHub Repository | https://github.com/marchantdev/agentledger |
 | Live Demo | https://frontend-beige-zeta-86.vercel.app |
-| Demo Video | 53-second tight cut — value prop → verified receipt #119 (Northwind Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Hosted URL inserted at submission. |
+| Demo Video | 53-second tight cut — value prop → verified receipt #119 (Northwind Cloud $8,500, Casper-RPC-verified) → tamper mismatch → verification. Video: https://youtu.be/-MnSxaIxAAo |
 | Contract on Testnet | https://testnet.cspr.live/contract/contract-4b5e05295ae5888756c9d4aa4980a8291161759a5880aa59bf83671bbd14a02a |
 
 ## 10. Team
