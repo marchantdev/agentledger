@@ -1,7 +1,0 @@
-file '01_problem.mp3'
-file '02_solution.mp3'
-file '03_dashboard.mp3'
-file '04_receipt.mp3'
-file '05_tamper.mp3'
-file '06_workbench.mp3'
-file '07_close.mp3'
